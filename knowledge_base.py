@@ -390,6 +390,38 @@ KNOWLEDGE_BASE = [
     {"subject": "French", "title": "Les articles en français",
      "content": "Le français utilise des articles définis (le, la, les), indéfinis (un, une, des), et partitifs (du, de la, des) pour introduire les noms selon leur genre, nombre et degré de précision."},
 
+    # ---------------- MEDECINE ----------------
+    {"subject": "Medicine", "title": "Immune system",
+     "content": "The immune system is the body's defense network against pathogens like bacteria and viruses, made up of white blood cells, antibodies, and organs such as the thymus and spleen."},
+    {"subject": "Medicine", "title": "Vaccine",
+     "content": "A vaccine is a biological preparation that trains the immune system to recognize and fight a specific pathogen, typically using a weakened, inactivated, or partial form of it."},
+    {"subject": "Medicine", "title": "Antibiotic",
+     "content": "An antibiotic is a medicine that kills or stops the growth of bacteria, used to treat bacterial infections. Antibiotics are not effective against viruses."},
+    {"subject": "Medicine", "title": "Blood types",
+     "content": "Human blood is classified into four main types (A, B, AB, O), each with a positive or negative Rh factor, determined by specific antigens on red blood cells."},
+    {"subject": "Medicine", "title": "Cardiovascular system",
+     "content": "The cardiovascular system consists of the heart, blood vessels, and blood, responsible for circulating oxygen, nutrients, and waste products throughout the body."},
+    {"subject": "Medicine", "title": "Nervous system",
+     "content": "The nervous system, made up of the brain, spinal cord, and nerves, controls body functions by transmitting electrical signals between the brain and the rest of the body."},
+
+    # ---------------- SCIENCES DE LA VIE ET DE LA TERRE (SVT) ----------------
+    {"subject": "Earth Science", "title": "Plate tectonics",
+     "content": "Plate tectonics is the scientific theory that Earth's outer shell is divided into several plates that move slowly over the mantle, causing earthquakes, volcanoes, and mountain formation."},
+    {"subject": "Earth Science", "title": "Volcano",
+     "content": "A volcano is an opening in Earth's crust through which molten rock (magma), ash, and gases escape, often forming a mountain-like structure over time."},
+    {"subject": "Earth Science", "title": "Earthquake",
+     "content": "An earthquake is a sudden shaking of the ground caused by the movement of tectonic plates or fault lines releasing built-up energy, measured using the Richter or moment magnitude scale."},
+    {"subject": "Earth Science", "title": "Water cycle",
+     "content": "The water cycle describes the continuous movement of water through evaporation, condensation, precipitation, and collection, circulating between the atmosphere, land, and oceans."},
+    {"subject": "Earth Science", "title": "Ecosystem",
+     "content": "An ecosystem is a community of living organisms interacting with each other and their physical environment, forming a functional ecological unit."},
+    {"subject": "Earth Science", "title": "Food chain",
+     "content": "A food chain shows the flow of energy between organisms, starting from producers (plants) to primary consumers (herbivores) to secondary and tertiary consumers (carnivores)."},
+    {"subject": "Earth Science", "title": "Biodiversity",
+     "content": "Biodiversity refers to the variety of life on Earth, including the diversity of species, genes, and ecosystems, essential for ecological balance and resilience."},
+    {"subject": "Earth Science", "title": "Climate change",
+     "content": "Climate change refers to long-term shifts in global temperatures and weather patterns, primarily driven since the industrial era by human activities such as burning fossil fuels."},
+
     # ---------------- INFORMATIQUE / PROGRAMMATION ----------------
     {"subject": "Computer Science", "title": "Algorithm",
      "content": "An algorithm is a finite sequence of well-defined instructions used to solve a problem or perform a computation, forming the basis of computer programs."},
