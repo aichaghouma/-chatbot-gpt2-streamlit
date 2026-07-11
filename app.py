@@ -4,6 +4,48 @@ import re
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
 # ============================================================
+# MINI BASE DE FAITS VÉRIFIÉS (capitales du monde)
+# ============================================================
+# Approche "RAG léger" : pour les questions de capitales, on répond
+# depuis une source fiable plutôt que de laisser GPT-2 inventer.
+
+CAPITALES = {
+    "france": "Paris", "tunisia": "Tunis", "tunisie": "Tunis",
+    "morocco": "Rabat", "maroc": "Rabat", "algeria": "Algiers",
+    "algerie": "Algiers", "libya": "Tripoli", "egypt": "Cairo",
+    "egypte": "Cairo", "germany": "Berlin", "allemagne": "Berlin",
+    "italy": "Rome", "italie": "Rome", "spain": "Madrid",
+    "espagne": "Madrid", "portugal": "Lisbon", "uk": "London",
+    "united kingdom": "London", "england": "London",
+    "angleterre": "London", "usa": "Washington, D.C.",
+    "united states": "Washington, D.C.", "etats-unis": "Washington, D.C.",
+    "canada": "Ottawa", "china": "Beijing", "chine": "Beijing",
+    "japan": "Tokyo", "japon": "Tokyo", "india": "New Delhi",
+    "inde": "New Delhi", "brazil": "Brasilia", "bresil": "Brasilia",
+    "russia": "Moscow", "russie": "Moscow", "turkey": "Ankara",
+    "turquie": "Ankara", "greece": "Athens", "grece": "Athens",
+    "switzerland": "Bern", "suisse": "Bern", "belgium": "Brussels",
+    "belgique": "Brussels", "netherlands": "Amsterdam",
+    "pays-bas": "Amsterdam", "senegal": "Dakar", "mali": "Bamako",
+    "ivory coast": "Yamoussoukro", "cote d'ivoire": "Yamoussoukro",
+    "saudi arabia": "Riyadh", "arabie saoudite": "Riyadh",
+    "qatar": "Doha", "uae": "Abu Dhabi",
+    "emirats arabes unis": "Abu Dhabi",
+}
+
+
+def chercher_capitale(question):
+    """Vérifie si la question porte sur une capitale connue et fiable."""
+    q = question.lower()
+    if "capital" not in q:
+        return None
+    for pays, capitale in CAPITALES.items():
+        if pays in q:
+            return f"The capital of {pays.title()} is {capitale}."
+    return None
+
+
+# ============================================================
 # CONFIGURATION DE LA PAGE
 # ============================================================
 st.set_page_config(page_title="Chatbot ENET'Com - GPT-2 Fine-tuné", page_icon="🤖")
@@ -73,6 +115,8 @@ with st.expander("ℹ️ À propos de ce chatbot"):
     - Fine-tuning : 8 époques sur ~8500 exemples de questions/réponses filtrées
     - Dataset : Databricks Dolly 15k
     - Génération : anti-répétition activée (repetition_penalty, no_repeat_ngram_size)
+    - **Mini-RAG** : pour les questions de capitales, une petite base de faits vérifiés
+      est consultée en priorité, avant de laisser GPT-2 générer une réponse libre
 
     **Comparaison avec la version précédente (Transformer from scratch) :**
     Ce projet a d'abord exploré un Transformer codé et entraîné entièrement from scratch
@@ -115,7 +159,13 @@ if modele_charge:
         # Générer et afficher la réponse
         with st.chat_message("assistant"):
             with st.spinner("Génération de la réponse..."):
-                reponse = generer_reponse(model, tokenizer, question, device)
+                reponse_fiable = chercher_capitale(question)
+                if reponse_fiable:
+                    reponse = reponse_fiable
+                    st.caption("✅ Réponse vérifiée (base de faits)")
+                else:
+                    reponse = generer_reponse(model, tokenizer, question, device)
+                    st.caption("🤖 Réponse générée par GPT-2 (non vérifiée)")
             st.markdown(reponse)
         st.session_state.messages.append({"role": "assistant", "content": reponse})
 
