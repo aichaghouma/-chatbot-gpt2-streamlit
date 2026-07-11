@@ -160,6 +160,98 @@ KNOWLEDGE_BASE = [
     {"subject": "Cybersecurity", "title": "DDoS attack",
      "content": "A DDoS (Distributed Denial of Service) attack overwhelms a target server or network with massive traffic from multiple sources, making it unavailable to legitimate users."},
 
+    # ---------------- LINUX / OS ----------------
+    {"subject": "Operating Systems", "title": "Linux",
+     "content": "Linux is a free, open-source operating system kernel first released in 1991, widely used in servers, embedded systems, and as the basis for many distributions like Ubuntu and Debian."},
+    {"subject": "Operating Systems", "title": "Linux file permissions",
+     "content": "Linux file permissions control read, write, and execute access for the owner, group, and others, typically viewed and modified using commands like chmod and ls -l."},
+    {"subject": "Operating Systems", "title": "Process vs thread",
+     "content": "A process is an independent program in execution with its own memory space, while a thread is a smaller unit of execution within a process that shares memory with other threads."},
+    {"subject": "Operating Systems", "title": "Kernel",
+     "content": "The kernel is the core component of an operating system, managing hardware resources (CPU, memory, devices) and providing services to other software."},
+    {"subject": "Operating Systems", "title": "Virtual memory",
+     "content": "Virtual memory is a memory management technique that gives programs the illusion of a large, continuous memory space, using disk storage to extend physical RAM."},
+
+    # ---------------- CLOUD COMPUTING ----------------
+    {"subject": "Cloud Computing", "title": "Cloud computing",
+     "content": "Cloud computing is the delivery of computing services (servers, storage, databases, software) over the internet, allowing on-demand access without owning physical infrastructure."},
+    {"subject": "Cloud Computing", "title": "IaaS, PaaS, SaaS",
+     "content": "IaaS (Infrastructure as a Service) provides virtual computing resources, PaaS (Platform as a Service) provides a development platform, and SaaS (Software as a Service) provides ready-to-use software over the internet."},
+    {"subject": "Cloud Computing", "title": "Virtualization",
+     "content": "Virtualization is the creation of virtual (rather than physical) versions of computing resources, such as servers or storage, allowing multiple virtual machines to run on one physical machine."},
+    {"subject": "Cloud Computing", "title": "Container (Docker)",
+     "content": "A container is a lightweight, portable unit that packages an application with all its dependencies, allowing it to run consistently across different environments. Docker is the most popular containerization tool."},
+    {"subject": "Cloud Computing", "title": "Scalability",
+     "content": "Scalability is a system's ability to handle increasing workloads by adding resources, either vertically (bigger machines) or horizontally (more machines)."},
+
+    # ---------------- DATA SCIENCE ----------------
+    {"subject": "Data Science", "title": "Data science",
+     "content": "Data science is an interdisciplinary field that uses statistics, programming, and domain knowledge to extract insights and knowledge from structured and unstructured data."},
+    {"subject": "Data Science", "title": "Data cleaning",
+     "content": "Data cleaning is the process of detecting and correcting (or removing) corrupt, inaccurate, or incomplete data from a dataset before analysis."},
+    {"subject": "Data Science", "title": "Data visualization",
+     "content": "Data visualization is the graphical representation of data (charts, graphs, maps) used to help identify patterns, trends, and insights more easily than raw numbers."},
+    {"subject": "Data Science", "title": "Correlation vs causation",
+     "content": "Correlation means two variables change together, while causation means one variable directly causes a change in another. Correlation does not necessarily imply causation."},
+
+    # ---------------- BASES DE DONNEES ----------------
+    {"subject": "Databases", "title": "Relational database",
+     "content": "A relational database stores data in tables with rows and columns, linked by relationships between keys, and is queried using SQL (Structured Query Language)."},
+    {"subject": "Databases", "title": "SQL",
+     "content": "SQL (Structured Query Language) is a standard programming language used to manage and query data in relational databases, using commands like SELECT, INSERT, and UPDATE."},
+    {"subject": "Databases", "title": "NoSQL database",
+     "content": "A NoSQL database is a non-relational database designed for flexible, scalable storage of unstructured or semi-structured data, such as MongoDB (document-based) or Redis (key-value)."},
+    {"subject": "Databases", "title": "Primary key",
+     "content": "A primary key is a column (or set of columns) in a database table that uniquely identifies each row, ensuring no duplicate or null values."},
+
+    # ---------------- DEVELOPPEMENT WEB ----------------
+    {"subject": "Web Development", "title": "Frontend vs backend",
+     "content": "Frontend development focuses on the user interface and experience (what users see, using HTML, CSS, JavaScript), while backend development handles server logic, databases, and APIs."},
+    {"subject": "Web Development", "title": "HTTP",
+     "content": "HTTP (HyperText Transfer Protocol) is the foundational protocol used to transfer data between web browsers and servers, forming the basis of communication on the web."},
+    {"subject": "Web Development", "title": "API",
+     "content": "An API (Application Programming Interface) is a set of rules that allows different software applications to communicate with each other, often used to exchange data between systems."},
+    {"subject": "Web Development", "title": "REST API",
+     "content": "A REST API is a web API that follows REST (Representational State Transfer) principles, using standard HTTP methods (GET, POST, PUT, DELETE) to interact with resources."},
+
+    # ---------------- DEVELOPPEMENT MOBILE ----------------
+    {"subject": "Mobile Development", "title": "Native vs cross-platform apps",
+     "content": "Native mobile apps are built specifically for one platform (iOS or Android) using platform-specific languages, while cross-platform apps (e.g., Flutter, React Native) run on multiple platforms from a single codebase."},
+    {"subject": "Mobile Development", "title": "Mobile app lifecycle",
+     "content": "The mobile app lifecycle refers to the different states an app goes through (launching, running, paused, background, terminated), managed by the operating system to optimize resource usage."},
+
+    # ---------------- DEVOPS ----------------
+    {"subject": "DevOps", "title": "DevOps",
+     "content": "DevOps is a set of practices combining software development (Dev) and IT operations (Ops) to shorten the development lifecycle and deliver software more frequently and reliably."},
+    {"subject": "DevOps", "title": "CI/CD",
+     "content": "CI/CD (Continuous Integration / Continuous Deployment) is a DevOps practice that automates building, testing, and deploying code changes frequently and reliably."},
+    {"subject": "DevOps", "title": "Version control (Git)",
+     "content": "Version control is a system that tracks changes to code over time, allowing collaboration and history tracking. Git is the most widely used version control system, often paired with GitHub."},
+
+    # ---------------- GENIE LOGICIEL ----------------
+    {"subject": "Software Engineering", "title": "Agile methodology",
+     "content": "Agile is a software development methodology based on iterative development, collaboration, and flexibility, breaking work into small cycles called sprints (often used with Scrum)."},
+    {"subject": "Software Engineering", "title": "Scrum",
+     "content": "Scrum is an Agile framework for managing software projects, organized around fixed-length sprints, daily stand-up meetings, and defined roles like Product Owner and Scrum Master."},
+    {"subject": "Software Engineering", "title": "Unit testing",
+     "content": "Unit testing is the practice of testing individual components or functions of code in isolation, to verify they work correctly before integrating them into the full system."},
+
+    # ---------------- NLP ----------------
+    {"subject": "NLP", "title": "Natural Language Processing (NLP)",
+     "content": "Natural Language Processing (NLP) is a field of AI focused on enabling computers to understand, interpret, and generate human language, used in chatbots, translation, and text analysis."},
+    {"subject": "NLP", "title": "Word embedding",
+     "content": "A word embedding is a numerical vector representation of a word that captures its meaning based on context, allowing similar words to have similar vector representations."},
+    {"subject": "NLP", "title": "Sentiment analysis",
+     "content": "Sentiment analysis is an NLP technique used to determine the emotional tone (positive, negative, neutral) of a piece of text, commonly used to analyze reviews or social media posts."},
+
+    # ---------------- SYSTEMES EMBARQUES ----------------
+    {"subject": "Embedded Systems", "title": "Embedded system",
+     "content": "An embedded system is a combination of computer hardware and software designed to perform a specific function within a larger device, such as in cars, appliances, or medical equipment."},
+    {"subject": "Embedded Systems", "title": "Real-time operating system (RTOS)",
+     "content": "A Real-Time Operating System (RTOS) is an operating system designed to process data and respond to events within strict, predictable time constraints, commonly used in embedded systems."},
+    {"subject": "Embedded Systems", "title": "GPIO",
+     "content": "GPIO (General-Purpose Input/Output) refers to programmable pins on a microcontroller or embedded board that can be configured as digital inputs or outputs to interact with external circuits."},
+
     # ---------------- INFORMATIQUE / PROGRAMMATION ----------------
     {"subject": "Computer Science", "title": "Algorithm",
      "content": "An algorithm is a finite sequence of well-defined instructions used to solve a problem or perform a computation, forming the basis of computer programs."},
