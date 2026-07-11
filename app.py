@@ -28,7 +28,7 @@ def charger_modele():
 # FONCTION DE GÉNÉRATION DE RÉPONSE
 # ============================================================
 
-def generer_reponse(model, tokenizer, question, device, max_length=100, temperature=0.5):
+def generer_reponse(model, tokenizer, question, device, max_length=80, temperature=0.7):
     model.eval()
     prompt = f"Question: {question}\nAnswer:"
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
@@ -40,6 +40,8 @@ def generer_reponse(model, tokenizer, question, device, max_length=100, temperat
             temperature=temperature,
             do_sample=True,
             top_p=0.9,
+            repetition_penalty=1.3,      # pénalise les mots déjà utilisés
+            no_repeat_ngram_size=3,      # interdit de répéter une séquence de 3 mots
             pad_token_id=tokenizer.eos_token_id
         )
 
@@ -63,6 +65,7 @@ with st.expander("ℹ️ À propos de ce chatbot"):
     - Modèle de base : GPT-2 (124M paramètres, pré-entraîné sur du texte anglais varié)
     - Fine-tuning : 8 époques sur ~8500 exemples de questions/réponses filtrées
     - Dataset : Databricks Dolly 15k
+    - Génération : anti-répétition activée (repetition_penalty, no_repeat_ngram_size)
 
     **Comparaison avec la version précédente (Transformer from scratch) :**
     Ce projet a d'abord exploré un Transformer codé et entraîné entièrement from scratch
@@ -72,7 +75,8 @@ with st.expander("ℹ️ À propos de ce chatbot"):
     du rapport de stage.
 
     ⚠️ **Limites connues** : malgré l'amélioration nette, le modèle peut encore produire
-    des répétitions ou des inexactitudes occasionnelles sur certains faits précis.
+    des inexactitudes factuelles occasionnelles (ex : mauvaise capitale, faits inventés),
+    ce qui illustre l'intérêt d'une approche LLM + RAG pour un chatbot plus fiable.
     """)
 
 # Charger le modèle (une seule fois, mis en cache)
