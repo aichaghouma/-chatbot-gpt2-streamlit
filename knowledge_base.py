@@ -252,6 +252,144 @@ KNOWLEDGE_BASE = [
     {"subject": "Embedded Systems", "title": "GPIO",
      "content": "GPIO (General-Purpose Input/Output) refers to programmable pins on a microcontroller or embedded board that can be configured as digital inputs or outputs to interact with external circuits."},
 
+    # ---------------- IA : SOUS-DOMAINES ----------------
+    {"subject": "Artificial Intelligence", "title": "Computer vision",
+     "content": "Computer vision is a field of AI that enables computers to interpret and understand visual information from images or videos, used in applications like facial recognition and self-driving cars."},
+    {"subject": "Artificial Intelligence", "title": "Generative AI",
+     "content": "Generative AI refers to AI systems capable of creating new content, such as text, images, or audio, based on patterns learned from training data. Examples include ChatGPT and image generators like DALL-E."},
+    {"subject": "Artificial Intelligence", "title": "Reinforcement learning",
+     "content": "Reinforcement learning is a machine learning approach where an agent learns to make decisions by taking actions in an environment and receiving rewards or penalties, aiming to maximize cumulative reward."},
+
+    # ---------------- LANGAGES DE PROGRAMMATION ----------------
+    {"subject": "Computer Science", "title": "C programming language",
+     "content": "C is a general-purpose, low-level programming language created in 1972, known for its efficiency and direct access to memory, widely used in operating systems and embedded systems."},
+    {"subject": "Computer Science", "title": "Python programming language",
+     "content": "Python is a high-level, general-purpose programming language known for its readable syntax, widely used in web development, data science, automation, and artificial intelligence."},
+    {"subject": "Computer Science", "title": "Java programming language",
+     "content": "Java is an object-oriented programming language designed to run on any platform via the Java Virtual Machine (JVM), widely used in enterprise applications and Android development."},
+
+    # ---------------- CYBERSECURITE : SOUS-DOMAINES ----------------
+    {"subject": "Cybersecurity", "title": "Cryptography",
+     "content": "Cryptography is the practice of securing communication and data by transforming it into unreadable formats, using techniques like encryption, to protect confidentiality and integrity."},
+    {"subject": "Cybersecurity", "title": "Network security",
+     "content": "Network security involves protecting computer networks from unauthorized access, misuse, or attacks, using tools like firewalls, intrusion detection systems, and VPNs."},
+    {"subject": "Cybersecurity", "title": "Web security",
+     "content": "Web security focuses on protecting websites and web applications from threats such as SQL injection, cross-site scripting (XSS), and other vulnerabilities that could compromise data or users."},
+    {"subject": "Cybersecurity", "title": "Malware",
+     "content": "Malware (malicious software) is any software designed to harm, exploit, or gain unauthorized access to a computer system, including viruses, worms, trojans, and ransomware."},
+    {"subject": "Cybersecurity", "title": "Digital forensics",
+     "content": "Digital forensics is the process of collecting, analyzing, and preserving digital evidence from computers or networks, often used to investigate cybercrimes."},
+    {"subject": "Cybersecurity", "title": "Ethical hacking",
+     "content": "Ethical hacking is the authorized practice of testing computer systems for security vulnerabilities, using the same techniques as malicious hackers but with permission, to help improve security."},
+
+    # ---------------- CULTURE GENERALE ----------------
+    {"subject": "General Knowledge", "title": "United Nations",
+     "content": "The United Nations (UN) is an international organization founded in 1945, currently with 193 member states, working to maintain peace, security, and cooperation among countries."},
+    {"subject": "General Knowledge", "title": "Olympic Games",
+     "content": "The Olympic Games are an international multi-sport event held every four years, alternating between Summer and Winter Games, tracing its origins to ancient Greece."},
+    {"subject": "General Knowledge", "title": "World Wide Web",
+     "content": "The World Wide Web was invented by Tim Berners-Lee in 1989, providing a system of interlinked documents accessed via the internet, distinct from the internet itself which is the underlying network."},
+    {"subject": "General Knowledge", "title": "Nobel Prize",
+     "content": "The Nobel Prize is an international award given annually in fields such as Physics, Chemistry, Medicine, Literature, Peace, and Economics, established by Alfred Nobel's will in 1895."},
+
+    # ---------------- LOGIQUE / RAISONNEMENT ----------------
+    {"subject": "Logic", "title": "Deductive reasoning",
+     "content": "Deductive reasoning is a logical process where a conclusion is drawn from general premises that are assumed to be true, guaranteeing the conclusion is true if the premises are true."},
+    {"subject": "Logic", "title": "Inductive reasoning",
+     "content": "Inductive reasoning is a logical process where a general conclusion is drawn from specific observations or examples, offering probable but not guaranteed truth."},
+    {"subject": "Logic", "title": "Boolean logic",
+     "content": "Boolean logic is a form of algebra where variables have only two possible values, true or false (1 or 0), using operators like AND, OR, and NOT, fundamental to digital circuits and programming."},
+    {"subject": "Logic", "title": "Syllogism",
+     "content": "A syllogism is a form of logical reasoning with two premises and a conclusion, such as: 'All men are mortal. Socrates is a man. Therefore, Socrates is mortal.'"},
+
+    # ---------------- ECONOMIE / FINANCE ----------------
+    {"subject": "Economics", "title": "Supply and demand",
+     "content": "Supply and demand is an economic model explaining how the price of a good is determined by the relationship between its availability (supply) and how much people want it (demand)."},
+    {"subject": "Economics", "title": "Inflation",
+     "content": "Inflation is the general increase in prices of goods and services over time, resulting in a decrease in the purchasing power of money."},
+    {"subject": "Economics", "title": "GDP",
+     "content": "GDP (Gross Domestic Product) is the total monetary value of all goods and services produced within a country over a specific period, used as a key indicator of economic performance."},
+    {"subject": "Economics", "title": "Startup",
+     "content": "A startup is a newly founded company, typically in its early stages, aiming to develop a scalable business model, often around an innovative product, service, or technology."},
+
+    # ---------------- DROIT ----------------
+    {"subject": "Law", "title": "Intellectual property",
+     "content": "Intellectual property refers to legal rights protecting creations of the mind, such as inventions (patents), literary and artistic works (copyright), and brand names (trademarks)."},
+    {"subject": "Law", "title": "GDPR",
+     "content": "The GDPR (General Data Protection Regulation) is a European Union law, effective since 2018, that regulates how organizations collect, store, and process personal data of EU citizens."},
+    {"subject": "Law", "title": "Contract",
+     "content": "A contract is a legally binding agreement between two or more parties, creating obligations that are enforceable by law, requiring an offer, acceptance, and mutual consent."},
+
+    # ---------------- BIOLOGIE ----------------
+    {"subject": "Biology", "title": "Cell",
+     "content": "A cell is the basic structural and functional unit of all living organisms, either prokaryotic (without a nucleus, like bacteria) or eukaryotic (with a nucleus, like human cells)."},
+    {"subject": "Biology", "title": "DNA",
+     "content": "DNA (Deoxyribonucleic Acid) is a molecule that carries the genetic instructions for the development, functioning, and reproduction of all known living organisms."},
+    {"subject": "Biology", "title": "Photosynthesis",
+     "content": "Photosynthesis is the process by which plants, algae, and some bacteria convert sunlight, water, and carbon dioxide into glucose (energy) and oxygen."},
+    {"subject": "Biology", "title": "Human genome",
+     "content": "The human genome is the complete set of genetic information (DNA) in a human being, consisting of approximately 3 billion base pairs organized into 23 pairs of chromosomes."},
+    {"subject": "Biology", "title": "Evolution",
+     "content": "Evolution is the process by which species of organisms change over successive generations through mechanisms such as natural selection, first extensively described by Charles Darwin."},
+
+    # ---------------- OUTILS CLOUD PRECIS ----------------
+    {"subject": "Cloud Computing", "title": "AWS",
+     "content": "AWS (Amazon Web Services) is the leading cloud computing platform, offering services like EC2 (virtual servers), S3 (storage), and Lambda (serverless computing)."},
+    {"subject": "Cloud Computing", "title": "Microsoft Azure",
+     "content": "Microsoft Azure is a cloud computing platform offering a wide range of services including virtual machines, databases, and AI tools, widely used in enterprise environments."},
+    {"subject": "Cloud Computing", "title": "Google Cloud Platform",
+     "content": "Google Cloud Platform (GCP) is Google's cloud computing service, offering infrastructure, data analytics, and machine learning tools such as BigQuery and Vertex AI."},
+    {"subject": "Cloud Computing", "title": "Kubernetes",
+     "content": "Kubernetes is an open-source platform for automating the deployment, scaling, and management of containerized applications, often used alongside Docker."},
+
+    # ---------------- LINUX / BASH PRECIS ----------------
+    {"subject": "Operating Systems", "title": "Bash shell",
+     "content": "Bash (Bourne Again SHell) is a command-line interpreter widely used on Linux and macOS, allowing users to run commands and write scripts to automate tasks."},
+    {"subject": "Operating Systems", "title": "Common Linux commands",
+     "content": "Common Linux commands include 'ls' (list files), 'cd' (change directory), 'grep' (search text), 'chmod' (change permissions), and 'sudo' (run as administrator)."},
+
+    # ---------------- BASES DE DONNEES PRECIS ----------------
+    {"subject": "Databases", "title": "MySQL",
+     "content": "MySQL is a popular open-source relational database management system, widely used in web applications, known for its speed and reliability."},
+    {"subject": "Databases", "title": "PostgreSQL",
+     "content": "PostgreSQL is a powerful open-source relational database management system known for its advanced features, standards compliance, and support for complex queries."},
+    {"subject": "Databases", "title": "MongoDB",
+     "content": "MongoDB is a popular NoSQL database that stores data in flexible, JSON-like documents rather than tables, well-suited for unstructured or rapidly changing data."},
+
+    # ---------------- WEB : OUTILS PRECIS ----------------
+    {"subject": "Web Development", "title": "HTML",
+     "content": "HTML (HyperText Markup Language) is the standard markup language used to structure content on web pages, defining elements like headings, paragraphs, and links."},
+    {"subject": "Web Development", "title": "CSS",
+     "content": "CSS (Cascading Style Sheets) is a language used to style and layout HTML content, controlling colors, fonts, spacing, and responsive design."},
+    {"subject": "Web Development", "title": "JavaScript",
+     "content": "JavaScript is a programming language that enables interactive and dynamic behavior on web pages, running in the browser and also on servers via Node.js."},
+    {"subject": "Web Development", "title": "React",
+     "content": "React is a popular JavaScript library for building user interfaces, developed by Facebook, based on reusable components and a virtual DOM for efficient rendering."},
+
+    # ---------------- MOBILE : OUTILS PRECIS ----------------
+    {"subject": "Mobile Development", "title": "Android",
+     "content": "Android is a mobile operating system developed by Google, based on the Linux kernel, powering the majority of smartphones worldwide."},
+    {"subject": "Mobile Development", "title": "Flutter",
+     "content": "Flutter is an open-source UI framework developed by Google, using the Dart language, allowing developers to build natively compiled apps for mobile, web, and desktop from a single codebase."},
+    {"subject": "Mobile Development", "title": "Kotlin",
+     "content": "Kotlin is a modern, statically typed programming language, officially recommended by Google for native Android app development, fully interoperable with Java."},
+
+    # ---------------- ANGLAIS ----------------
+    {"subject": "English", "title": "Parts of speech",
+     "content": "The main parts of speech in English are nouns, verbs, adjectives, adverbs, pronouns, prepositions, conjunctions, and interjections, each serving a different grammatical role in a sentence."},
+    {"subject": "English", "title": "Present simple vs present continuous",
+     "content": "The present simple is used for habits and general facts (e.g., 'She works here'), while the present continuous describes actions happening now (e.g., 'She is working now')."},
+    {"subject": "English", "title": "Synonym and antonym",
+     "content": "A synonym is a word with a similar meaning to another word (e.g., 'happy' and 'glad'), while an antonym is a word with the opposite meaning (e.g., 'happy' and 'sad')."},
+
+    # ---------------- FRANCAIS ----------------
+    {"subject": "French", "title": "Les temps verbaux de base",
+     "content": "Les temps verbaux de base en français incluent le présent, le passé composé, l'imparfait et le futur simple, chacun exprimant une relation différente au temps de l'action."},
+    {"subject": "French", "title": "Accord du participe passé",
+     "content": "Le participe passé s'accorde en genre et en nombre avec le sujet lorsqu'il est employé avec l'auxiliaire être, mais reste généralement invariable avec l'auxiliaire avoir, sauf exceptions."},
+    {"subject": "French", "title": "Les articles en français",
+     "content": "Le français utilise des articles définis (le, la, les), indéfinis (un, une, des), et partitifs (du, de la, des) pour introduire les noms selon leur genre, nombre et degré de précision."},
+
     # ---------------- INFORMATIQUE / PROGRAMMATION ----------------
     {"subject": "Computer Science", "title": "Algorithm",
      "content": "An algorithm is a finite sequence of well-defined instructions used to solve a problem or perform a computation, forming the basis of computer programs."},
