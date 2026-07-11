@@ -28,7 +28,7 @@ def charger_modele():
 # FONCTION DE GÉNÉRATION DE RÉPONSE
 # ============================================================
 
-def generer_reponse(model, tokenizer, question, device, max_length=80, temperature=0.7):
+def generer_reponse(model, tokenizer, question, device, max_length=80, temperature=0.4):
     model.eval()
     prompt = f"Question: {question}\nAnswer:"
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
@@ -39,8 +39,8 @@ def generer_reponse(model, tokenizer, question, device, max_length=80, temperatu
             max_length=max_length,
             temperature=temperature,
             do_sample=True,
-            top_p=0.9,
-            repetition_penalty=1.3,      # pénalise les mots déjà utilisés
+            top_p=0.85,
+            repetition_penalty=1.15,     # pénalise légèrement les mots déjà utilisés
             no_repeat_ngram_size=3,      # interdit de répéter une séquence de 3 mots
             pad_token_id=tokenizer.eos_token_id
         )
