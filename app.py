@@ -164,10 +164,16 @@ with st.expander("ℹ️ À propos de ce chatbot"):
 
     **Comment ça marche :**
     1. La question est comparée automatiquement à une base de **{len(KNOWLEDGE_BASE)} fiches**
-       (maths, physique, géographie, civilisation)
-    2. Si une fiche pertinente est trouvée → GPT-2 génère sa réponse **en s'appuyant dessus**
+       (maths, physique, géographie, civilisation, électronique, informatique, cybersécurité, chimie)
+    2. Si une fiche pertinente est trouvée → la réponse **vérifiée** de cette fiche est affichée directement (RAG extractif)
     3. Les questions de capitales sont répondues directement depuis une base fiable
     4. Sinon → GPT-2 génère librement (moins fiable, signalé par un avertissement)
+
+    **Pourquoi un RAG "extractif" plutôt que "génératif" ?**
+    Des tests ont montré que GPT-2 base, n'étant pas entraîné à l'instruction-following,
+    n'arrive pas à reformuler fidèlement un contexte fourni — il continue à halluciner
+    même avec la bonne information sous les yeux. Afficher directement le contenu vérifié
+    de la fiche garantit donc une réponse fiable pour les sujets couverts par la base.
 
     **Caractéristiques techniques :**
     - Modèle de base : GPT-2 (124M paramètres)
@@ -222,10 +228,8 @@ if modele_charge:
                     doc_trouve, score = chercher_dans_base(question, vectorizer, matrix)
 
                     if doc_trouve:
-                        reponse = generer_reponse_avec_contexte(
-                            model, tokenizer, question, doc_trouve["content"], device
-                        )
-                        badge = f"📚 Réponse basée sur : *{doc_trouve['title']}* ({doc_trouve['subject']}) — RAG"
+                        reponse = doc_trouve["content"]
+                        badge = f"📚 Réponse vérifiée : *{doc_trouve['title']}* ({doc_trouve['subject']}) — RAG"
                     else:
                         # 3. Aucun document pertinent -> génération libre
                         reponse = generer_reponse(model, tokenizer, question, device)
