@@ -8,6 +8,44 @@ from sklearn.metrics.pairwise import cosine_similarity
 from knowledge_base import KNOWLEDGE_BASE
 
 # ============================================================
+# CALCULATEUR ARITHMÉTIQUE (priorité absolue avant l'IA)
+# ============================================================
+# Les maths simples ne doivent JAMAIS être laissées à GPT-2, qui n'est
+# pas fiable pour ça. On calcule directement avec Python, précis même
+# pour de très grands nombres.
+
+def calculer_expression(question):
+    """Détecte et calcule une opération arithmétique simple (+, -, *, /)."""
+    q = question.replace(" ", "")
+    match = re.search(r'(-?\d+\.?\d*)([\+\-\*x×/])(-?\d+\.?\d*)', q)
+    if not match:
+        return None
+
+    a_str, op, b_str = match.groups()
+    a = int(a_str) if "." not in a_str else float(a_str)
+    b = int(b_str) if "." not in b_str else float(b_str)
+
+    try:
+        if op == "+":
+            resultat = a + b
+        elif op == "-":
+            resultat = a - b
+        elif op in ("*", "x", "×"):
+            resultat = a * b
+        elif op == "/":
+            if b == 0:
+                return "Division by zero is undefined."
+            resultat = a / b
+        else:
+            return None
+    except Exception:
+        return None
+
+    op_disp = "×" if op in ("*", "x", "×") else op
+    return f"{a} {op_disp} {b} = {resultat}"
+
+
+# ============================================================
 # MINI BASE DE FAITS VÉRIFIÉS (capitales du monde)
 # ============================================================
 # Approche "RAG léger" : pour les questions de capitales, on répond
@@ -217,11 +255,15 @@ if modele_charge:
         # Générer et afficher la réponse
         with st.chat_message("assistant"):
             with st.spinner("Génération de la réponse..."):
-                # 1. Vérifier d'abord si c'est une question de capitale
-                reponse_capitale = chercher_capitale(question)
+                # 0. Vérifier d'abord si c'est un calcul arithmétique (priorité absolue)
+                reponse_calcul = calculer_expression(question)
 
-                if reponse_capitale:
-                    reponse = reponse_capitale
+                if reponse_calcul:
+                    reponse = reponse_calcul
+                    badge = "🧮 Calcul exact (Python)"
+                # 1. Vérifier ensuite si c'est une question de capitale
+                elif chercher_capitale(question):
+                    reponse = chercher_capitale(question)
                     badge = "✅ Réponse vérifiée (base de capitales)"
                 else:
                     # 2. Chercher dans la base de connaissances multi-matières
