@@ -19,8 +19,6 @@ KNOWLEDGE_BASE = [
      "content": "A matrix is a rectangular array of numbers arranged in rows and columns, used to represent linear transformations and solve systems of linear equations."},
     {"subject": "Math", "title": "Probability",
      "content": "Probability is a measure of the likelihood that an event will occur, expressed as a number between 0 (impossible) and 1 (certain)."},
-    {"subject": "Math", "title": "Fourier transform",
-     "content": "The Fourier transform is a mathematical technique that decomposes a signal into its constituent frequencies, converting a signal from the time domain to the frequency domain."},
 
     # ---------------- PHYSIQUE ----------------
     {"subject": "Physics", "title": "Newton's first law",
@@ -131,6 +129,36 @@ KNOWLEDGE_BASE = [
      "content": "Fine-tuning is the process of taking a pre-trained model and further training it on a smaller, specific dataset to adapt it to a particular task."},
     {"subject": "Artificial Intelligence", "title": "Large Language Model (LLM)",
      "content": "A Large Language Model (LLM) is a type of AI model trained on massive amounts of text data, capable of understanding and generating human-like language, such as GPT or Claude."},
+
+    # ---------------- SIGNAL / DSP (Traitement du Signal) ----------------
+    {"subject": "Signal Processing", "title": "Fourier transform",
+     "content": "The Fourier transform is a mathematical technique that decomposes a signal into its constituent frequencies, converting a signal from the time domain to the frequency domain."},
+    {"subject": "Signal Processing", "title": "Digital Signal Processor (DSP)",
+     "content": "A DSP (Digital Signal Processor) is a specialized microprocessor optimized for processing digital signals in real time, such as audio, video, or communication signals."},
+    {"subject": "Signal Processing", "title": "Sampling theorem",
+     "content": "The Nyquist-Shannon sampling theorem states that a continuous signal must be sampled at a rate at least twice its highest frequency to be accurately reconstructed."},
+    {"subject": "Signal Processing", "title": "FIR filter",
+     "content": "An FIR (Finite Impulse Response) filter is a digital filter whose output depends only on current and past input values, known for being stable and having linear phase."},
+    {"subject": "Signal Processing", "title": "Z-transform",
+     "content": "The Z-transform converts a discrete-time signal into a complex frequency domain representation, widely used to analyze and design digital filters and control systems."},
+
+    # ---------------- RESEAUX AVANCE ----------------
+    {"subject": "Networking", "title": "VLAN",
+     "content": "A VLAN (Virtual Local Area Network) is a logical subdivision of a network that groups devices together as if they were on the same physical LAN, improving security and traffic management."},
+    {"subject": "Networking", "title": "Network protocol",
+     "content": "A network protocol is a set of rules that define how data is formatted, transmitted, and received between devices on a network, such as HTTP, FTP, or SMTP."},
+    {"subject": "Networking", "title": "Packet",
+     "content": "A packet is a small unit of data transmitted over a network, containing both the actual data (payload) and control information such as source and destination addresses."},
+
+    # ---------------- CYBERSECURITE AVANCE ----------------
+    {"subject": "Cybersecurity", "title": "AES encryption",
+     "content": "AES (Advanced Encryption Standard) is a widely used symmetric encryption algorithm that encrypts data in fixed-size blocks using a shared secret key, considered highly secure."},
+    {"subject": "Cybersecurity", "title": "RSA encryption",
+     "content": "RSA is an asymmetric encryption algorithm based on the mathematical difficulty of factoring large prime numbers, using a public key to encrypt and a private key to decrypt."},
+    {"subject": "Cybersecurity", "title": "Hashing",
+     "content": "Hashing is the process of converting data into a fixed-size string of characters (a hash) using a one-way function, commonly used to verify data integrity and store passwords securely."},
+    {"subject": "Cybersecurity", "title": "DDoS attack",
+     "content": "A DDoS (Distributed Denial of Service) attack overwhelms a target server or network with massive traffic from multiple sources, making it unavailable to legitimate users."},
 
     # ---------------- INFORMATIQUE / PROGRAMMATION ----------------
     {"subject": "Computer Science", "title": "Algorithm",
