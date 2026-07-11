@@ -1,5 +1,6 @@
 import streamlit as st
 import torch
+import re
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
 # ============================================================
@@ -46,7 +47,13 @@ def generer_reponse(model, tokenizer, question, device, max_length=80, temperatu
         )
 
     reponse = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    return reponse.split("Answer:")[-1].strip()
+    reponse = reponse.split("Answer:")[-1].strip()
+
+    # Garder seulement les 2 premières phrases (le modèle dérive souvent après)
+    phrases = re.split(r'(?<=[.!?])\s+', reponse)
+    reponse_courte = " ".join(phrases[:2]).strip()
+
+    return reponse_courte if reponse_courte else reponse
 
 
 # ============================================================
