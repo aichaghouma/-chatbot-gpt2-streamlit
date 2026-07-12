@@ -289,6 +289,15 @@ if modele_charge:
             with st.spinner("Génération de la réponse..."):
                 francais = est_francais(question)
 
+                # Si la question est en français, on la traduit en anglais pour la recherche
+                # (la base de connaissances est en anglais) — on garde la question originale pour l'affichage
+                question_recherche = question
+                if francais:
+                    try:
+                        question_recherche = GoogleTranslator(source="fr", target="en").translate(question)
+                    except Exception:
+                        question_recherche = question  # si la traduction échoue, on cherche avec le texte original
+
                 # 0. Vérifier d'abord si c'est un calcul arithmétique (priorité absolue)
                 reponse_calcul = calculer_expression(question)
 
@@ -296,14 +305,14 @@ if modele_charge:
                     reponse = reponse_calcul
                     badge = "🧮 Calcul exact (Python)"
                 # 1. Vérifier ensuite si c'est une question de capitale
-                elif chercher_capitale(question):
-                    reponse = chercher_capitale(question)
+                elif chercher_capitale(question_recherche):
+                    reponse = chercher_capitale(question_recherche)
                     if francais:
                         reponse = traduire_en_francais(reponse)
                     badge = "✅ Réponse vérifiée (base de capitales)"
                 else:
-                    # 2. Chercher dans la base de connaissances multi-matières
-                    doc_trouve, score = chercher_dans_base(question, vectorizer, matrix)
+                    # 2. Chercher dans la base de connaissances multi-matières (toujours en anglais)
+                    doc_trouve, score = chercher_dans_base(question_recherche, vectorizer, matrix)
 
                     if doc_trouve:
                         reponse = doc_trouve["content"]
@@ -312,7 +321,7 @@ if modele_charge:
                         badge = f"📚 Réponse vérifiée : *{doc_trouve['title']}* ({doc_trouve['subject']}) — RAG"
                     else:
                         # 3. Aucun document pertinent -> génération libre (toujours en anglais chez GPT-2)
-                        reponse = generer_reponse(model, tokenizer, question, device)
+                        reponse = generer_reponse(model, tokenizer, question_recherche, device)
                         if francais:
                             reponse = traduire_en_francais(reponse)
                         badge = "🤖 Réponse générée par GPT-2 (non vérifiée — aucun document pertinent trouvé)"
