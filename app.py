@@ -4,8 +4,40 @@ import re
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from deep_translator import GoogleTranslator
 
 from knowledge_base import KNOWLEDGE_BASE
+
+# ============================================================
+# DETECTION DE LANGUE ET TRADUCTION
+# ============================================================
+
+MOTS_FRANCAIS = {
+    "quelle", "quel", "quels", "quelles", "qu'est-ce", "qu est ce",
+    "comment", "pourquoi", "combien", "où", "ou est", "qui est",
+    "est-ce", "peux-tu", "peux tu", "explique", "explique-moi",
+    "définis", "définir", "c'est quoi", "c est quoi", "quelles sont",
+    "quels sont", "je veux savoir", "dis-moi", "dis moi",
+}
+
+
+def est_francais(question):
+    """Détecte si la question est posée en français (heuristique simple)."""
+    q = question.lower()
+    if any(c in q for c in "éèêàùçôî"):
+        return True
+    if any(mot in q for mot in MOTS_FRANCAIS):
+        return True
+    return False
+
+
+def traduire_en_francais(texte_anglais):
+    """Traduit un texte anglais en français. En cas d'échec, renvoie le texte original + note."""
+    try:
+        return GoogleTranslator(source="en", target="fr").translate(texte_anglais)
+    except Exception:
+        return texte_anglais + "\n\n*(Traduction indisponible, réponse affichée en anglais)*"
+
 
 # ============================================================
 # CALCULATEUR ARITHMÉTIQUE (priorité absolue avant l'IA)
@@ -255,6 +287,8 @@ if modele_charge:
         # Générer et afficher la réponse
         with st.chat_message("assistant"):
             with st.spinner("Génération de la réponse..."):
+                francais = est_francais(question)
+
                 # 0. Vérifier d'abord si c'est un calcul arithmétique (priorité absolue)
                 reponse_calcul = calculer_expression(question)
 
@@ -264,6 +298,8 @@ if modele_charge:
                 # 1. Vérifier ensuite si c'est une question de capitale
                 elif chercher_capitale(question):
                     reponse = chercher_capitale(question)
+                    if francais:
+                        reponse = traduire_en_francais(reponse)
                     badge = "✅ Réponse vérifiée (base de capitales)"
                 else:
                     # 2. Chercher dans la base de connaissances multi-matières
@@ -271,10 +307,14 @@ if modele_charge:
 
                     if doc_trouve:
                         reponse = doc_trouve["content"]
+                        if francais:
+                            reponse = traduire_en_francais(reponse)
                         badge = f"📚 Réponse vérifiée : *{doc_trouve['title']}* ({doc_trouve['subject']}) — RAG"
                     else:
-                        # 3. Aucun document pertinent -> génération libre
+                        # 3. Aucun document pertinent -> génération libre (toujours en anglais chez GPT-2)
                         reponse = generer_reponse(model, tokenizer, question, device)
+                        if francais:
+                            reponse = traduire_en_francais(reponse)
                         badge = "🤖 Réponse générée par GPT-2 (non vérifiée — aucun document pertinent trouvé)"
 
                 st.caption(badge)
