@@ -177,7 +177,12 @@ SEUIL_SIMILARITE = 0.15  # en dessous de ce score, on considère qu'il n'y a pas
 def construire_index_rag():
     """Prépare le moteur de recherche (TF-IDF) sur la base de connaissances."""
     textes = [f"{doc['title']} {doc['content']}" for doc in KNOWLEDGE_BASE]
-    stop_words_etendus = list(ENGLISH_STOP_WORDS) + ["define", "explain", "describe", "tell"]
+    stop_words_etendus = list(ENGLISH_STOP_WORDS) + [
+        "define", "defined", "defining", "definition",
+        "explain", "explains", "explained", "explaining",
+        "describe", "describes", "described", "describing",
+        "tell", "tells", "telling",
+    ]
     vectorizer = TfidfVectorizer(stop_words=stop_words_etendus)
     matrix = vectorizer.fit_transform(textes)
     return vectorizer, matrix
