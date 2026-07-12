@@ -2,7 +2,7 @@ import streamlit as st
 import torch
 import re
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from sklearn.metrics.pairwise import cosine_similarity
 from deep_translator import GoogleTranslator
 
@@ -177,7 +177,8 @@ SEUIL_SIMILARITE = 0.15  # en dessous de ce score, on considère qu'il n'y a pas
 def construire_index_rag():
     """Prépare le moteur de recherche (TF-IDF) sur la base de connaissances."""
     textes = [f"{doc['title']} {doc['content']}" for doc in KNOWLEDGE_BASE]
-    vectorizer = TfidfVectorizer(stop_words="english")
+    stop_words_etendus = list(ENGLISH_STOP_WORDS) + ["define", "explain", "describe", "tell"]
+    vectorizer = TfidfVectorizer(stop_words=stop_words_etendus)
     matrix = vectorizer.fit_transform(textes)
     return vectorizer, matrix
 
