@@ -40,6 +40,54 @@ def traduire_en_francais(texte_anglais):
 
 
 # ============================================================
+# TRADUCTEUR (fonctionnalité dédiée, prioritaire)
+# ============================================================
+
+MOTS_TRADUCTION = ["traduire", "traduis", "traduction de", "translate"]
+
+
+def detecter_demande_traduction(question):
+    """Détecte une demande de traduction et extrait le texte + la langue cible."""
+    q = question.lower()
+    if not any(m in q for m in MOTS_TRADUCTION):
+        return None
+
+    if any(m in q for m in ["en anglais", "into english", "to english", "in english"]):
+        cible = "en"
+    elif any(m in q for m in ["en français", "en francais", "into french", "to french", "in french"]):
+        cible = "fr"
+    else:
+        cible = None  # déduite automatiquement selon la langue détectée du texte
+
+    if ":" in question:
+        texte = question.split(":", 1)[1].strip()
+    else:
+        texte = question
+        a_retirer = MOTS_TRADUCTION + ["en anglais", "en français", "en francais", "into english",
+                                        "into french", "cette phrase", "ce texte", "this sentence", "?"]
+        for m in a_retirer:
+            texte = re.sub(re.escape(m), "", texte, flags=re.IGNORECASE)
+        texte = texte.strip(" :.-")
+
+    if not texte:
+        return None
+    return texte, cible
+
+
+def executer_traduction(texte, cible):
+    """Traduit un texte donné vers la langue cible (déduite automatiquement si None)."""
+    try:
+        if cible is None:
+            cible = "en" if est_francais(texte) else "fr"
+        source = "fr" if cible == "en" else "en"
+        traduction = GoogleTranslator(source=source, target=cible).translate(texte)
+        langue_nom = {"en": "anglais", "fr": "français"}[cible]
+        return f'"{texte}" → **{traduction}** ({langue_nom})'
+    except Exception:
+        return "Désolé, la traduction n'a pas pu être effectuée (problème de connexion)."
+
+
+# ============================================================
 # CALCULATEUR ARITHMÉTIQUE (priorité absolue avant l'IA)
 # ============================================================
 # Les maths simples ne doivent JAMAIS être laissées à GPT-2, qui n'est
@@ -300,10 +348,16 @@ if modele_charge:
 
                 # 0. Vérifier d'abord si c'est un calcul arithmétique (priorité absolue)
                 reponse_calcul = calculer_expression(question)
+                demande_trad = detecter_demande_traduction(question)
 
                 if reponse_calcul:
                     reponse = reponse_calcul
                     badge = "🧮 Calcul exact (Python)"
+                # 0.5 Vérifier si c'est une demande de traduction
+                elif demande_trad:
+                    texte, cible = demande_trad
+                    reponse = executer_traduction(texte, cible)
+                    badge = "🌐 Traduction"
                 # 1. Vérifier ensuite si c'est une question de capitale
                 elif chercher_capitale(question_recherche):
                     reponse = chercher_capitale(question_recherche)
