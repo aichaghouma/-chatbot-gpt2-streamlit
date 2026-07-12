@@ -392,9 +392,9 @@ KNOWLEDGE_BASE = [
 
     # ---------------- MEDECINE ----------------
     {"subject": "Medicine", "title": "Immune system",
-     "content": "The immune system is the body's defense network against pathogens like bacteria and viruses, made up of white blood cells, antibodies, and organs such as the thymus and spleen."},
+     "content": "The immune system is the body's defense network against pathogens like bacteria and viruses, made up of white blood cells, antibodies, and organs such as the thymus and spleen. Here is how the immune system works: it first detects foreign pathogens, then white blood cells attack and destroy the invaders, antibodies are produced to neutralize them, and memory cells are created so the body can respond faster if the same pathogen returns."},
     {"subject": "Medicine", "title": "Vaccine",
-     "content": "A vaccine is a biological preparation that trains the immune system to recognize and fight a specific pathogen, typically using a weakened, inactivated, or partial form of it."},
+     "content": "A vaccine is a biological preparation that trains the immune system to recognize and fight a specific pathogen. The purpose of vaccines is to prevent disease by preparing the body's defenses in advance, typically using a weakened, inactivated, or partial form of the pathogen."},
     {"subject": "Medicine", "title": "Antibiotic",
      "content": "An antibiotic is a medicine that kills or stops the growth of bacteria, used to treat bacterial infections. Antibiotics are not effective against viruses."},
     {"subject": "Medicine", "title": "Blood types",
@@ -403,6 +403,8 @@ KNOWLEDGE_BASE = [
      "content": "The cardiovascular system consists of the heart, blood vessels, and blood, responsible for circulating oxygen, nutrients, and waste products throughout the body."},
     {"subject": "Medicine", "title": "Nervous system",
      "content": "The nervous system, made up of the brain, spinal cord, and nerves, controls body functions by transmitting electrical signals between the brain and the rest of the body."},
+    {"subject": "Medicine", "title": "Viral infection vs bacterial infection",
+     "content": "A viral infection is caused by a virus, which needs a host cell to reproduce and cannot be treated with antibiotics, while a bacterial infection is caused by bacteria, living organisms that can often be treated with antibiotics. Viral examples include the flu and COVID-19; bacterial examples include strep throat and tuberculosis."},
 
     # ---------------- SCIENCES DE LA VIE ET DE LA TERRE (SVT) ----------------
     {"subject": "Earth Science", "title": "Plate tectonics",
@@ -421,6 +423,88 @@ KNOWLEDGE_BASE = [
      "content": "Biodiversity refers to the variety of life on Earth, including the diversity of species, genes, and ecosystems, essential for ecological balance and resilience."},
     {"subject": "Earth Science", "title": "Climate change",
      "content": "Climate change refers to long-term shifts in global temperatures and weather patterns, primarily driven since the industrial era by human activities such as burning fossil fuels."},
+
+    # ---------------- MEDECINE : COMPLEMENTS ----------------
+    {"subject": "Medicine", "title": "Flu symptoms",
+     "content": "Common symptoms of the flu (influenza) include fever, chills, muscle aches, cough, sore throat, fatigue, and headache, typically appearing suddenly and lasting about a week."},
+    {"subject": "Medicine", "title": "Diabetes",
+     "content": "Diabetes is a chronic condition where the body cannot properly regulate blood sugar levels, either due to insufficient insulin production (Type 1) or insulin resistance (Type 2)."},
+    {"subject": "Medicine", "title": "Fever",
+     "content": "A fever is a temporary increase in body temperature, usually above 38°C (100.4°F), often a sign that the body is fighting an infection."},
+    {"subject": "Medicine", "title": "Kidney failure causes",
+     "content": "Kidney failure can be caused by conditions such as diabetes, high blood pressure, chronic kidney disease, severe dehydration, or blockages in the urinary tract that damage kidney function over time."},
+    {"subject": "Medicine", "title": "Alzheimer's disease diagnosis",
+     "content": "Alzheimer's disease is diagnosed through a combination of medical history review, cognitive tests, neurological exams, brain imaging (MRI or CT scans), and sometimes blood tests to rule out other causes."},
+    {"subject": "Medicine", "title": "Heart disease risk factors",
+     "content": "Risk factors for heart disease include high blood pressure, high cholesterol, smoking, diabetes, obesity, physical inactivity, poor diet, and a family history of heart disease."},
+    {"subject": "Medicine", "title": "Anemia causes",
+     "content": "Anemia is commonly caused by iron deficiency, vitamin B12 or folate deficiency, chronic diseases, blood loss, or genetic conditions that affect red blood cell production."},
+    {"subject": "Medicine", "title": "MRI vs CT scan",
+     "content": "An MRI (Magnetic Resonance Imaging) uses magnetic fields to produce detailed images of soft tissues without radiation, while a CT scan (Computed Tomography) uses X-rays to quickly produce cross-sectional images, better suited for bones and emergencies."},
+    {"subject": "Medicine", "title": "LDL vs HDL cholesterol",
+     "content": "LDL (Low-Density Lipoprotein) is often called 'bad' cholesterol because it can build up in artery walls, while HDL (High-Density Lipoprotein) is called 'good' cholesterol because it helps remove excess cholesterol from the bloodstream."},
+    {"subject": "Medicine", "title": "Heart-healthy foods",
+     "content": "Foods good for heart health include fatty fish (omega-3), fruits, vegetables, whole grains, nuts, and olive oil, while reducing saturated fats, salt, and processed sugar supports cardiovascular health."},
+    {"subject": "Medicine", "title": "Importance of exercise",
+     "content": "Regular exercise is important for health because it strengthens the heart, improves circulation, helps maintain a healthy weight, reduces stress, and lowers the risk of chronic diseases like diabetes and heart disease."},
+    {"subject": "Medicine", "title": "Parkinson's disease symptoms",
+     "content": "Early symptoms of Parkinson's disease include tremors (shaking), stiffness, slow movement, balance problems, and changes in handwriting or speech."},
+
+    # ---------------- PREMIERS SECOURS ----------------
+    {"subject": "First Aid", "title": "Choking response",
+     "content": "If someone is choking and cannot breathe, cough, or speak, perform the Heimlich maneuver: stand behind them, place a fist above their navel, and give quick upward thrusts until the object is expelled."},
+    {"subject": "First Aid", "title": "Severe bleeding response",
+     "content": "For severe bleeding, apply firm, direct pressure to the wound with a clean cloth, keep the injured area elevated if possible, and call emergency services immediately if bleeding does not stop."},
+    {"subject": "First Aid", "title": "Stroke warning signs",
+     "content": "Warning signs of a stroke can be remembered with FAST: Face drooping, Arm weakness, Speech difficulty, and Time to call emergency services immediately, as fast treatment is critical."},
+    {"subject": "First Aid", "title": "When to call emergency services",
+     "content": "Call emergency medical services immediately for symptoms like chest pain, difficulty breathing, severe bleeding, loss of consciousness, signs of stroke, or any life-threatening situation."},
+
+    # ---------------- ECONOMIE : COMPLEMENTS ----------------
+    {"subject": "Economics", "title": "Interest rates and the economy",
+     "content": "Interest rates affect the economy by influencing borrowing costs: higher rates discourage spending and investment (slowing the economy), while lower rates encourage borrowing and spending (stimulating growth)."},
+    {"subject": "Economics", "title": "Unemployment causes",
+     "content": "Unemployment can be caused by economic recessions, technological automation replacing jobs, seasonal industry changes, mismatched skills, or structural shifts in the economy."},
+
+    # ---------------- RESEAUX : COMPLEMENTS ----------------
+    {"subject": "Networking", "title": "Subnet mask",
+     "content": "A subnet mask is a number that divides an IP address into network and host portions, used to determine which devices belong to the same local network."},
+
+    # ---------------- DATA SCIENCE : COMPLEMENTS ----------------
+    {"subject": "Data Science", "title": "Feature engineering",
+     "content": "Feature engineering is the process of selecting, transforming, or creating input variables (features) from raw data to improve the performance of a machine learning model."},
+    {"subject": "Data Science", "title": "Mean, median, and mode",
+     "content": "The mean is the average of a dataset, the median is the middle value when data is sorted, and the mode is the most frequently occurring value in the dataset."},
+    {"subject": "Data Science", "title": "Qualitative vs quantitative data",
+     "content": "Qualitative data describes categories or qualities (e.g., colors, opinions), while quantitative data consists of numerical values that can be measured and analyzed statistically (e.g., height, age)."},
+
+    # ---------------- MATHS : COMPLEMENTS ----------------
+    {"subject": "Math", "title": "Permutation vs combination",
+     "content": "A permutation is an arrangement of items where order matters, while a combination is a selection of items where order does not matter."},
+
+    # ---------------- INFORMATIQUE : COMPLEMENTS ----------------
+    {"subject": "Computer Science", "title": "Stack vs queue",
+     "content": "A stack is a data structure that follows Last-In-First-Out (LIFO) order, while a queue follows First-In-First-Out (FIFO) order, both used to manage collections of elements."},
+
+    # ---------------- LOGISTIQUE (NOUVELLE MATIERE) ----------------
+    {"subject": "Logistics", "title": "Supply chain management",
+     "content": "Supply chain management is the coordination of all activities involved in producing and delivering a product, from raw materials to the final customer, including sourcing, production, and distribution."},
+    {"subject": "Logistics", "title": "Inventory management",
+     "content": "Inventory management is the process of ordering, storing, tracking, and controlling a company's stock of goods to ensure the right amount of inventory is available without excess or shortage."},
+    {"subject": "Logistics", "title": "Logistics vs supply chain management",
+     "content": "Logistics focuses specifically on the movement and storage of goods (transportation, warehousing), while supply chain management is a broader concept covering the entire process from sourcing raw materials to delivering the final product."},
+    {"subject": "Logistics", "title": "Just-in-time (JIT) inventory",
+     "content": "Just-in-time (JIT) is an inventory strategy where materials or products are ordered and received only as needed for production, reducing storage costs but requiring precise coordination."},
+    {"subject": "Logistics", "title": "Role of a warehouse",
+     "content": "A warehouse stores goods between production and distribution, serving as a hub for inventory management, order fulfillment, and efficient distribution to retailers or customers."},
+
+    # ---------------- COMPLEMENTS FINAUX ----------------
+    {"subject": "Medicine", "title": "Heart attack warning signs",
+     "content": "The first signs of a heart attack often include chest pain or pressure, pain spreading to the arm, jaw, or back, shortness of breath, cold sweats, nausea, and lightheadedness."},
+    {"subject": "Medicine", "title": "Stress and physical health",
+     "content": "Chronic stress can negatively affect physical health by raising blood pressure, weakening the immune system, disrupting sleep, and increasing the risk of heart disease, digestive issues, and mental health problems."},
+    {"subject": "Physics", "title": "Electromagnetic radiation",
+     "content": "Electromagnetic radiation is a form of energy that travels through space as waves, including visible light, radio waves, X-rays, and microwaves, all traveling at the speed of light."},
 
     # ---------------- INFORMATIQUE / PROGRAMMATION ----------------
     {"subject": "Computer Science", "title": "Algorithm",
