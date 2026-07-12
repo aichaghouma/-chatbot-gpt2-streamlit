@@ -6,31 +6,31 @@
 KNOWLEDGE_BASE = [
     # ---------------- MATHS ----------------
     {"subject": "Math", "title": "Pythagorean theorem",
-     "content": "The Pythagorean theorem states that in a right triangle, the square of the hypotenuse is equal to the sum of the squares of the other two sides: a^2 + b^2 = c^2."},
+     "content": "The Pythagorean theorem states that in a right triangle, the square of the hypotenuse equals the sum of the squares of the other two sides. Formula: $a^2 + b^2 = c^2$, where c is the hypotenuse."},
     {"subject": "Math", "title": "Derivative",
-     "content": "A derivative measures how a function changes as its input changes. It represents the slope of the tangent line to the function's graph at a given point."},
+     "content": "A derivative measures how a function changes as its input changes, representing the slope of the tangent line. Formula: $f'(x) = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}$."},
     {"subject": "Math", "title": "Integral",
-     "content": "An integral represents the area under the curve of a function. It is the reverse operation of differentiation."},
+     "content": "An integral represents the area under the curve of a function, and is the reverse operation of differentiation. Formula: $\\int_a^b f(x)\\,dx$ gives the area under $f(x)$ between $a$ and $b$."},
     {"subject": "Math", "title": "Prime number",
      "content": "A prime number is a natural number greater than 1 that has no positive divisors other than 1 and itself. Examples include 2, 3, 5, 7, 11."},
     {"subject": "Math", "title": "Pi",
-     "content": "Pi (denoted by the Greek letter pi) is the ratio of a circle's circumference to its diameter, approximately equal to 3.14159."},
+     "content": "Pi (denoted by the Greek letter $\\pi$) is the ratio of a circle's circumference to its diameter, approximately equal to 3.14159. Formula: $\\pi = \\frac{C}{d}$, where C is the circumference and d the diameter."},
     {"subject": "Math", "title": "Matrix",
-     "content": "A matrix is a rectangular array of numbers arranged in rows and columns, used to represent linear transformations and solve systems of linear equations."},
+     "content": "A matrix is a rectangular array of numbers arranged in rows and columns, used to represent linear transformations and solve systems of linear equations, e.g. $A = \\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$."},
     {"subject": "Math", "title": "Probability",
-     "content": "Probability is a measure of the likelihood that an event will occur, expressed as a number between 0 (impossible) and 1 (certain)."},
+     "content": "Probability is a measure of the likelihood that an event will occur, expressed as a number between 0 (impossible) and 1 (certain). Formula: $P(A) = \\frac{\\text{favorable outcomes}}{\\text{total outcomes}}$."},
 
     # ---------------- PHYSIQUE ----------------
     {"subject": "Physics", "title": "Newton's first law",
      "content": "Newton's first law states that an object at rest stays at rest, and an object in motion stays in motion at constant velocity, unless acted upon by an external force."},
     {"subject": "Physics", "title": "Newton's second law",
-     "content": "Newton's second law states that force equals mass times acceleration (F = m x a)."},
+     "content": "Newton's second law states that force equals mass times acceleration. Formula: $F = m \\times a$."},
     {"subject": "Physics", "title": "Ohm's law",
-     "content": "Ohm's law states that the current through a conductor is directly proportional to the voltage and inversely proportional to the resistance: V = I x R."},
+     "content": "Ohm's law states that the current through a conductor is directly proportional to the voltage and inversely proportional to the resistance. Formula: $V = I \\times R$."},
     {"subject": "Physics", "title": "Energy conservation",
-     "content": "The law of conservation of energy states that energy cannot be created or destroyed, only transformed from one form to another."},
+     "content": "The law of conservation of energy states that energy cannot be created or destroyed, only transformed from one form to another. Total energy formula: $E = E_{kinetic} + E_{potential} = \\text{constant}$."},
     {"subject": "Physics", "title": "Speed of light",
-     "content": "The speed of light in a vacuum is approximately 299,792 kilometers per second (about 300,000 km/s), the fastest speed possible in the universe."},
+     "content": "The speed of light in a vacuum, denoted c, is approximately 299,792 kilometers per second (about 300,000 km/s), the fastest speed possible in the universe. It appears in Einstein's formula: $E = mc^2$."},
     {"subject": "Physics", "title": "Gravity",
      "content": "Gravity is the force of attraction between two masses. On Earth, gravitational acceleration is approximately 9.81 meters per second squared."},
     {"subject": "Physics", "title": "Electric current",
@@ -136,15 +136,15 @@ KNOWLEDGE_BASE = [
 
     # ---------------- SIGNAL / DSP (Traitement du Signal) ----------------
     {"subject": "Signal Processing", "title": "Fourier transform",
-     "content": "The Fourier transform is a mathematical technique that decomposes a signal into its constituent frequencies, converting a signal from the time domain to the frequency domain."},
+     "content": "The Fourier transform (not to be confused with the AI Transformer architecture) is a mathematical technique that decomposes a signal into its constituent frequencies, converting a signal from the time domain to the frequency domain. Formula: $X(f) = \\int_{-\\infty}^{\\infty} x(t)\\, e^{-i2\\pi ft}\\, dt$."},
     {"subject": "Signal Processing", "title": "Digital Signal Processor (DSP)",
      "content": "A DSP (Digital Signal Processor) is a specialized microprocessor optimized for processing digital signals in real time, such as audio, video, or communication signals."},
     {"subject": "Signal Processing", "title": "Sampling theorem",
-     "content": "The Nyquist-Shannon sampling theorem states that a continuous signal must be sampled at a rate at least twice its highest frequency to be accurately reconstructed."},
+     "content": "The Nyquist-Shannon sampling theorem states that a continuous signal must be sampled at a rate at least twice its highest frequency to be accurately reconstructed. Formula: $f_s \\geq 2 f_{max}$."},
     {"subject": "Signal Processing", "title": "FIR filter",
-     "content": "An FIR (Finite Impulse Response) filter is a digital filter whose output depends only on current and past input values, known for being stable and having linear phase."},
+     "content": "An FIR (Finite Impulse Response) filter is a digital filter whose output depends only on current and past input values, known for being stable and having linear phase. Formula: $y[n] = \\sum_{k=0}^{N} b_k \\, x[n-k]$."},
     {"subject": "Signal Processing", "title": "Z-transform",
-     "content": "The Z-transform converts a discrete-time signal into a complex frequency domain representation, widely used to analyze and design digital filters and control systems."},
+     "content": "The Z-transform converts a discrete-time signal into a complex frequency domain representation, widely used to analyze and design digital filters and control systems. Formula: $X(z) = \\sum_{n=-\\infty}^{\\infty} x[n]\\, z^{-n}$."},
 
     # ---------------- RESEAUX AVANCE ----------------
     {"subject": "Networking", "title": "VLAN",
@@ -478,13 +478,13 @@ KNOWLEDGE_BASE = [
     {"subject": "Data Science", "title": "Feature engineering",
      "content": "Feature engineering is the process of selecting, transforming, or creating input variables (features) from raw data to improve the performance of a machine learning model."},
     {"subject": "Data Science", "title": "Mean, median, and mode",
-     "content": "The mean is the average of a dataset, the median is the middle value when data is sorted, and the mode is the most frequently occurring value in the dataset."},
+     "content": "The mean is the average of a dataset (formula: $\\bar{x} = \\frac{\\sum x_i}{n}$), the median is the middle value when data is sorted, and the mode is the most frequently occurring value in the dataset."},
     {"subject": "Data Science", "title": "Qualitative vs quantitative data",
      "content": "Qualitative data describes categories or qualities (e.g., colors, opinions), while quantitative data consists of numerical values that can be measured and analyzed statistically (e.g., height, age)."},
 
     # ---------------- MATHS : COMPLEMENTS ----------------
     {"subject": "Math", "title": "Permutation vs combination",
-     "content": "A permutation is an arrangement of items where order matters, while a combination is a selection of items where order does not matter."},
+     "content": "A permutation is an arrangement of items where order matters (formula: $P(n,r) = \\frac{n!}{(n-r)!}$), while a combination is a selection of items where order does not matter (formula: $C(n,r) = \\frac{n!}{r!(n-r)!}$)."},
 
     # ---------------- INFORMATIQUE : COMPLEMENTS ----------------
     {"subject": "Computer Science", "title": "Stack vs queue",
