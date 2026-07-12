@@ -45,6 +45,23 @@ def traduire_en_francais(texte_anglais):
 
 MOTS_TRADUCTION = ["traduire", "traduis", "traduction de", "translate"]
 
+# ============================================================
+# DETECTION DE CONVERSION DE DEVISES (hors de portée, réponse honnête)
+# ============================================================
+
+MOTS_DEVISES = [
+    "dinar", "euro", "dollar", "livre sterling", "franc suisse", "yen",
+    "usd", "eur", "gbp", "tnd", "cad", "taux de change", "exchange rate",
+    "combien vaut", "convertir en", "conversion de devise",
+]
+
+
+def est_demande_devise(question):
+    """Détecte une demande de conversion de devises (impossible à répondre de façon fiable et à jour)."""
+    q = question.lower()
+    nb_mots_devise = sum(1 for m in MOTS_DEVISES if m in q)
+    return nb_mots_devise >= 2  # au moins 2 mentions de devises (ex: dinar + euro)
+
 
 def detecter_demande_traduction(question):
     """Détecte une demande de traduction et extrait le texte + la langue cible."""
@@ -355,8 +372,22 @@ if modele_charge:
                 # 0. Vérifier d'abord si c'est un calcul arithmétique (priorité absolue)
                 reponse_calcul = calculer_expression(question)
                 demande_trad = detecter_demande_traduction(question)
+                demande_devise = est_demande_devise(question)
 
-                if reponse_calcul:
+                if demande_devise:
+                    reponse = ("Je ne peux pas faire de conversion de devises fiable, car les taux de change "
+                               "changent en temps réel et je n'ai pas accès à des données à jour. "
+                               "Utilise un convertisseur en ligne (comme Google, XE.com, ou ton application bancaire) "
+                               "pour un taux exact et actuel.")
+                    if francais:
+                        pass  # déjà en français
+                    else:
+                        reponse = ("I can't provide reliable currency conversion, since exchange rates change "
+                                   "in real time and I don't have access to live data. "
+                                   "Please use an online converter (like Google, XE.com, or your banking app) "
+                                   "for an exact, current rate.")
+                    badge = "⚠️ Hors de portée (données en temps réel non disponibles)"
+                elif reponse_calcul:
                     reponse = reponse_calcul
                     badge = "🧮 Calcul exact (Python)"
                 # 0.5 Vérifier si c'est une demande de traduction
