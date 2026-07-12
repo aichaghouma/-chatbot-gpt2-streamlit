@@ -115,6 +115,10 @@ KNOWLEDGE_BASE = [
     # ---------------- IA / MACHINE LEARNING ----------------
     {"subject": "Artificial Intelligence", "title": "Machine learning",
      "content": "Machine learning is a field of artificial intelligence where computer systems learn patterns from data to make predictions or decisions, without being explicitly programmed for each task."},
+    {"subject": "Artificial Intelligence", "title": "Artificial intelligence",
+     "content": "Artificial intelligence (AI) is the broad field of computer science focused on building systems that can perform tasks typically requiring human intelligence, such as reasoning, learning, perception, and decision-making."},
+    {"subject": "Artificial Intelligence", "title": "AI, ML and DL relationship",
+     "content": "Artificial intelligence (AI) is the broadest concept: building systems that mimic human intelligence. Within AI lies machine learning (ML), where systems improve through experience with data. Within ML lies deep learning (DL), which relies on multi-layered neural networks."},
     {"subject": "Artificial Intelligence", "title": "Neural network",
      "content": "A neural network is a machine learning model inspired by the human brain, made of layers of interconnected nodes (neurons) that process and learn from data."},
     {"subject": "Artificial Intelligence", "title": "Deep learning",
