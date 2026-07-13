@@ -402,8 +402,18 @@ if modele_charge:
                         reponse = traduire_en_francais(reponse)
                     badge = "✅ Réponse vérifiée (base de capitales)"
                 else:
-                    # 2. Chercher dans la base de connaissances multi-matières (toujours en anglais)
-                    doc_trouve, score = chercher_dans_base(question_recherche, vectorizer, matrix)
+                    # 2. Chercher dans la base de connaissances multi-matières
+                    # On essaie à la fois la version traduite ET la version originale
+                    # (la traduction peut corrompre des acronymes techniques comme "MOSFET", "TCP", etc.)
+                    doc_trad, score_trad = chercher_dans_base(question_recherche, vectorizer, matrix)
+                    if francais:
+                        doc_brut, score_brut = chercher_dans_base(question, vectorizer, matrix)
+                        if doc_brut and score_brut > score_trad:
+                            doc_trouve, score = doc_brut, score_brut
+                        else:
+                            doc_trouve, score = doc_trad, score_trad
+                    else:
+                        doc_trouve, score = doc_trad, score_trad
 
                     if doc_trouve:
                         reponse = doc_trouve["content"]
