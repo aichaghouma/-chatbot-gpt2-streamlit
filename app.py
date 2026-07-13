@@ -408,6 +408,10 @@ if modele_charge:
                     doc_trad, score_trad = chercher_dans_base(question_recherche, vectorizer, matrix)
                     if francais:
                         doc_brut, score_brut = chercher_dans_base(question, vectorizer, matrix)
+                        # On ignore un match "brut" venant des fiches de grammaire (French/English) :
+                        # elles captent à tort des mots français/anglais génériques sans rapport avec le sujet
+                        if doc_brut and doc_brut["subject"] in ("French", "English"):
+                            doc_brut, score_brut = None, 0
                         if doc_brut and score_brut > score_trad:
                             doc_trouve, score = doc_brut, score_brut
                         else:
