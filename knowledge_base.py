@@ -72,7 +72,7 @@ KNOWLEDGE_BASE = [
     {"subject": "Electronics", "title": "Resistance",
      "content": "Electrical resistance is the opposition to the flow of electric current in a conductor, measured in ohms. It is calculated using Ohm's law: R = V / I."},
     {"subject": "Electronics", "title": "Capacitor",
-     "content": "A capacitor is an electronic component that stores electrical energy in an electric field, made of two conductive plates separated by an insulator, measured in farads (F)."},
+     "content": "A capacitor is an electronic component that stores electrical energy in an electric field, made of two conductive plates separated by an insulator, measured in farads (F). It works by charging: when voltage is applied, charge accumulates on the plates until it reaches the source voltage; during discharging, the stored charge flows out through the circuit until the capacitor is empty."},
     {"subject": "Electronics", "title": "Transistor",
      "content": "A transistor is a semiconductor device used to amplify or switch electronic signals. It is a fundamental building block of modern electronic devices and integrated circuits."},
     {"subject": "Electronics", "title": "Signal modulation",
@@ -127,6 +127,8 @@ KNOWLEDGE_BASE = [
     # ---------------- IA / MACHINE LEARNING ----------------
     {"subject": "Artificial Intelligence", "title": "Machine learning",
      "content": "Machine learning is a field of artificial intelligence where computer systems learn patterns from data to make predictions or decisions, without being explicitly programmed for each task."},
+    {"subject": "Artificial Intelligence", "title": "Supervised vs unsupervised learning",
+     "content": "Supervised learning trains a model on labeled data, where the correct answers are known, to predict outcomes for new data. Unsupervised learning works with unlabeled data, finding hidden patterns or groupings without predefined answers."},
     {"subject": "Artificial Intelligence", "title": "Artificial intelligence",
      "content": "Artificial intelligence (AI) is the broad field of computer science focused on building systems that can perform tasks typically requiring human intelligence, such as reasoning, learning, perception, and decision-making."},
     {"subject": "Artificial Intelligence", "title": "AI, ML and DL relationship",
