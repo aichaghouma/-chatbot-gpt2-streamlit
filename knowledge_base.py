@@ -815,4 +815,28 @@ KNOWLEDGE_BASE = [
      "content": "A digital counter is a circuit, built from flip-flops, that counts pulses or events, incrementing its output value with each clock signal, used in timers and frequency dividers."},
     {"subject": "Electronics", "title": "Low-pass vs high-pass filter",
      "content": "A low-pass filter allows signals below a certain frequency to pass while blocking higher frequencies, while a high-pass filter does the opposite, allowing high frequencies to pass and blocking low ones."},
+
+    # ---------------- TELECOMMUNICATIONS ----------------
+    {"subject": "Signal Processing", "title": "Telecommunication",
+     "content": "Telecommunication is the transmission of information (voice, data, video) over a distance using electronic means such as cables, radio waves, or optical fiber."},
+    {"subject": "Signal Processing", "title": "Multiplexing",
+     "content": "Multiplexing is a technique that combines multiple signals into one shared medium for transmission, then separates them at the receiving end, improving the efficient use of communication channels."},
+    {"subject": "Signal Processing", "title": "Communication satellite",
+     "content": "A communication satellite is a spacecraft placed in orbit that relays and amplifies radio signals, enabling long-distance communication such as TV broadcasting, internet, and phone services."},
+    {"subject": "Networking", "title": "Cellular network",
+     "content": "A cellular network works by dividing a geographic area into cells, each served by a base station (tower), allowing mobile devices to connect and hand off seamlessly between cells as users move."},
+    {"subject": "Signal Processing", "title": "Simplex, half-duplex, full-duplex",
+     "content": "Simplex communication allows data to flow in one direction only, half-duplex allows both directions but not simultaneously, and full-duplex allows simultaneous two-way communication."},
+
+    # ---------------- CYBERSECURITE : COMPLEMENTS ----------------
+    {"subject": "Cybersecurity", "title": "Cybersecurity",
+     "content": "Cybersecurity is the practice of protecting computer systems, networks, and data from digital attacks, unauthorized access, damage, or theft."},
+    {"subject": "Cybersecurity", "title": "Antivirus software",
+     "content": "Antivirus software is a program designed to detect, block, and remove malicious software (malware) such as viruses, worms, and trojans from a computer system."},
+    {"subject": "Cybersecurity", "title": "IDS and IPS",
+     "content": "An IDS (Intrusion Detection System) monitors network traffic and alerts administrators to suspicious activity, while an IPS (Intrusion Prevention System) actively blocks or prevents detected threats in real time."},
+    {"subject": "Cybersecurity", "title": "Brute force attack",
+     "content": "A brute force attack is a hacking method that systematically tries every possible password or key combination until the correct one is found, often mitigated by account lockouts or strong passwords."},
+    {"subject": "Cybersecurity", "title": "Authentication vs authorization",
+     "content": "Authentication verifies who a user is (e.g., via a password or fingerprint), while authorization determines what an authenticated user is allowed to access or do within a system."},
 ]
