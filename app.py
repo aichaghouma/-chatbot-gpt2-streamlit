@@ -1,12 +1,50 @@
 import streamlit as st
 import torch
 import re
+import io
+import speech_recognition as sr
+from gtts import gTTS
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from sklearn.metrics.pairwise import cosine_similarity
 from deep_translator import GoogleTranslator
 
 from knowledge_base import KNOWLEDGE_BASE
+
+# ============================================================
+# ASR (Reconnaissance vocale) ET TTS (Synthèse vocale)
+# ============================================================
+
+def transcrire_audio(audio_bytes):
+    """Transcrit un fichier audio (bytes WAV) en texte, via Google Web Speech API (gratuit)."""
+    recognizer = sr.Recognizer()
+    try:
+        with sr.AudioFile(io.BytesIO(audio_bytes)) as source:
+            audio_data = recognizer.record(source)
+        # essai en français d'abord, puis anglais si échec
+        try:
+            return recognizer.recognize_google(audio_data, language="fr-FR")
+        except sr.UnknownValueError:
+            return recognizer.recognize_google(audio_data, language="en-US")
+    except sr.UnknownValueError:
+        return None  # audio incompréhensible
+    except sr.RequestError:
+        return None  # problème réseau/API
+    except Exception:
+        return None
+
+
+def generer_audio(texte, francais=True):
+    """Convertit un texte en audio (bytes mp3) via gTTS."""
+    try:
+        lang = "fr" if francais else "en"
+        tts = gTTS(text=texte, lang=lang)
+        buffer = io.BytesIO()
+        tts.write_to_fp(buffer)
+        buffer.seek(0)
+        return buffer.read()
+    except Exception:
+        return None
 
 # ============================================================
 # DETECTION DE LANGUE ET TRADUCTION
@@ -342,14 +380,37 @@ if modele_charge:
     # Initialiser l'historique de conversation
     if "messages" not in st.session_state:
         st.session_state.messages = []
+    if "lire_audio" not in st.session_state:
+        st.session_state.lire_audio = False
 
     # Afficher l'historique
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+            if message["role"] == "assistant" and "audio" in message and message["audio"]:
+                st.audio(message["audio"], format="audio/mp3")
 
-    # Zone de saisie utilisateur
-    if question := st.chat_input("Pose ta question ici (en anglais)..."):
+    # Option : lire les réponses à voix haute (TTS)
+    st.session_state.lire_audio = st.checkbox(
+        "🔊 Lire les réponses à voix haute", value=st.session_state.lire_audio
+    )
+
+    # Zone de saisie vocale (ASR)
+    with st.expander("🎤 Poser la question à l'oral"):
+        audio_input = st.audio_input("Enregistre ta question")
+
+    question_vocale = None
+    if audio_input is not None:
+        with st.spinner("Transcription de l'audio..."):
+            question_vocale = transcrire_audio(audio_input.getvalue())
+        if question_vocale is None:
+            st.warning("Impossible de comprendre l'audio. Réessaie ou pose ta question par écrit.")
+
+    # Zone de saisie utilisateur (texte ou audio transcrit)
+    question_texte = st.chat_input("Pose ta question ici (en anglais)...")
+    question = question_texte or question_vocale
+
+    if question:
         # Afficher la question de l'utilisateur
         with st.chat_message("user"):
             st.markdown(question)
@@ -433,7 +494,17 @@ if modele_charge:
 
                 st.caption(badge)
             st.markdown(reponse)
-        st.session_state.messages.append({"role": "assistant", "content": reponse})
+
+            audio_reponse = None
+            if st.session_state.lire_audio:
+                with st.spinner("Génération de l'audio..."):
+                    audio_reponse = generer_audio(reponse, francais=francais)
+                if audio_reponse:
+                    st.audio(audio_reponse, format="audio/mp3")
+                else:
+                    st.caption("⚠️ Synthèse vocale indisponible pour cette réponse.")
+
+        st.session_state.messages.append({"role": "assistant", "content": reponse, "audio": audio_reponse})
 
     # Bouton pour réinitialiser la conversation
     if st.session_state.messages:
