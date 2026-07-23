@@ -92,28 +92,25 @@ def generer_qcm(matiere, nb_questions=5):
 # ANALYSE D'IMAGE (via API d'inférence Hugging Face)
 # ============================================================
 
-HF_VISION_MODEL_URL = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base"
+HF_VISION_MODEL = "Salesforce/blip-image-captioning-base"
 
 
 def analyser_image(image_bytes):
     """Envoie l'image à un modèle de vision hébergé sur Hugging Face et retourne une description (en anglais)."""
-    headers = {}
+    from huggingface_hub import InferenceClient
+    from huggingface_hub.errors import HfHubHTTPError
+
     hf_token = st.secrets.get("HF_TOKEN") if hasattr(st, "secrets") else None
-    if hf_token:
-        headers["Authorization"] = f"Bearer {hf_token}"
 
     try:
-        response = requests.post(HF_VISION_MODEL_URL, headers=headers, data=image_bytes, timeout=30)
-        if response.status_code == 503:
+        client = InferenceClient(token=hf_token) if hf_token else InferenceClient()
+        resultat = client.image_to_text(image_bytes, model=HF_VISION_MODEL)
+        texte = resultat.generated_text if hasattr(resultat, "generated_text") else str(resultat)
+        return texte, None
+    except HfHubHTTPError as e:
+        if "503" in str(e):
             return None, "Le modèle de vision est en cours de chargement sur les serveurs Hugging Face (premier appel). Réessaie dans 20-30 secondes."
-        if response.status_code != 200:
-            return None, f"Erreur de l'API Hugging Face (code {response.status_code}). Vérifie ta connexion ou réessaie plus tard."
-        resultat = response.json()
-        if isinstance(resultat, list) and len(resultat) > 0 and "generated_text" in resultat[0]:
-            return resultat[0]["generated_text"], None
-        return None, "Réponse inattendue de l'API de vision."
-    except requests.exceptions.Timeout:
-        return None, "Le service de vision met trop de temps à répondre. Réessaie."
+        return None, f"Erreur de l'API Hugging Face : {e}"
     except Exception as e:
         return None, f"Erreur lors de l'analyse de l'image : {e}"
 
