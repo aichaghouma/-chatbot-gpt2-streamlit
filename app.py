@@ -130,16 +130,19 @@ def detecter_demande_traduction(question):
 
 
 def executer_traduction(texte, cible):
-    """Traduit un texte donné vers la langue cible (déduite automatiquement si None)."""
+    """Traduit un texte donné vers la langue cible (déduite automatiquement si None).
+    Retourne (texte_affichage, texte_audio_pur, cible_est_francais)."""
     try:
         if cible is None:
             cible = "en" if est_francais(texte) else "fr"
         source = "fr" if cible == "en" else "en"
         traduction = GoogleTranslator(source=source, target=cible).translate(texte)
         langue_nom = {"en": "anglais", "fr": "français"}[cible]
-        return f'"{texte}" → **{traduction}** ({langue_nom})'
+        affichage = f'"{texte}" → **{traduction}** ({langue_nom})'
+        return affichage, traduction, (cible == "fr")
     except Exception:
-        return "Désolé, la traduction n'a pas pu être effectuée (problème de connexion)."
+        msg = "Désolé, la traduction n'a pas pu être effectuée (problème de connexion)."
+        return msg, msg, True
 
 
 # ============================================================
@@ -434,6 +437,8 @@ if modele_charge:
                 reponse_calcul = calculer_expression(question)
                 demande_trad = detecter_demande_traduction(question)
                 demande_devise = est_demande_devise(question)
+                texte_audio = None  # surchargé uniquement par le cas "traduction"
+                audio_est_francais = francais
 
                 if demande_devise:
                     reponse = ("Je ne peux pas faire de conversion de devises fiable, car les taux de change "
@@ -454,7 +459,7 @@ if modele_charge:
                 # 0.5 Vérifier si c'est une demande de traduction
                 elif demande_trad:
                     texte, cible = demande_trad
-                    reponse = executer_traduction(texte, cible)
+                    reponse, texte_audio, audio_est_francais = executer_traduction(texte, cible)
                     badge = "🌐 Traduction"
                 # 1. Vérifier ensuite si c'est une question de capitale
                 elif chercher_capitale(question_recherche):
@@ -497,8 +502,10 @@ if modele_charge:
 
             audio_reponse = None
             if st.session_state.lire_audio:
+                if texte_audio is None:
+                    texte_audio = reponse
                 with st.spinner("Génération de l'audio..."):
-                    audio_reponse = generer_audio(reponse, francais=francais)
+                    audio_reponse = generer_audio(texte_audio, francais=audio_est_francais)
                 if audio_reponse:
                     st.audio(audio_reponse, format="audio/mp3")
                 else:
