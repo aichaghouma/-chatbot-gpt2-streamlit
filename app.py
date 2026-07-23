@@ -110,9 +110,9 @@ def analyser_image(image_bytes):
     except HfHubHTTPError as e:
         if "503" in str(e):
             return None, "Le modèle de vision est en cours de chargement sur les serveurs Hugging Face (premier appel). Réessaie dans 20-30 secondes."
-        return None, f"Erreur de l'API Hugging Face : {e}"
+        return None, f"Erreur HTTP Hugging Face [{type(e).__name__}] : {e!r}"
     except Exception as e:
-        return None, f"Erreur lors de l'analyse de l'image : {e}"
+        return None, f"Erreur [{type(e).__name__}] lors de l'analyse de l'image : {e!r}"
 
 # ============================================================
 # DETECTION DE LANGUE ET TRADUCTION
