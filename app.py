@@ -2,6 +2,7 @@ import streamlit as st
 import torch
 import re
 import io
+import random
 import speech_recognition as sr
 from gtts import gTTS
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
@@ -45,6 +46,46 @@ def generer_audio(texte, francais=True):
         return buffer.read()
     except Exception:
         return None
+
+# ============================================================
+# GENERATEUR DE QCM / EXAMEN (basé sur la base de connaissances)
+# ============================================================
+
+def generer_qcm(matiere, nb_questions=5):
+    """Génère un QCM à partir des fiches d'une matière (ou de toute la base si matiere='Toutes')."""
+    if matiere == "Toutes":
+        pool = KNOWLEDGE_BASE
+    else:
+        pool = [d for d in KNOWLEDGE_BASE if d["subject"] == matiere]
+
+    if len(pool) < 2:
+        return []
+
+    nb_questions = min(nb_questions, len(pool))
+    fiches_questions = random.sample(pool, nb_questions)
+
+    # Pool de "mauvaises réponses" : priorité à la même matière, complété par toute la base si besoin
+    autre_pool = [d for d in pool if d not in fiches_questions]
+    if len(autre_pool) < 3:
+        autre_pool = [d for d in KNOWLEDGE_BASE if d not in fiches_questions]
+
+    qcm = []
+    for fiche in fiches_questions:
+        distracteurs_dispo = [d for d in autre_pool if d["title"] != fiche["title"]]
+        nb_distracteurs = min(3, len(distracteurs_dispo))
+        distracteurs = random.sample(distracteurs_dispo, nb_distracteurs)
+
+        options = [fiche["content"]] + [d["content"] for d in distracteurs]
+        random.shuffle(options)
+        bonne_reponse_idx = options.index(fiche["content"])
+
+        qcm.append({
+            "question": f"Que signifie / qu'est-ce que : {fiche['title']} ?",
+            "options": options,
+            "bonne_reponse_idx": bonne_reponse_idx,
+            "sujet": fiche["subject"],
+        })
+    return qcm
 
 # ============================================================
 # DETECTION DE LANGUE ET TRADUCTION
@@ -368,6 +409,59 @@ with st.expander("ℹ️ À propos de ce chatbot"):
     ce comportement illustre concrètement l'intérêt d'un RAG à plus grande échelle pour
     un chatbot de production fiable.
     """)
+
+# ============================================================
+# SECTION QCM / EXAMEN
+# ============================================================
+
+with st.expander("📝 Générer un QCM / Examen"):
+    st.markdown("Génère un questionnaire à choix multiples à partir de la base de connaissances, pour réviser une matière.")
+
+    matieres_disponibles = ["Toutes"] + sorted(set(d["subject"] for d in KNOWLEDGE_BASE))
+    col1, col2 = st.columns(2)
+    with col1:
+        matiere_choisie = st.selectbox("Matière", matieres_disponibles)
+    with col2:
+        nb_questions_choisi = st.slider("Nombre de questions", min_value=3, max_value=15, value=5)
+
+    if st.button("🎲 Générer le QCM"):
+        st.session_state.qcm_actuel = generer_qcm(matiere_choisie, nb_questions_choisi)
+        st.session_state.qcm_reponses = {}
+        st.session_state.qcm_corrige = False
+
+    if st.session_state.get("qcm_actuel"):
+        qcm = st.session_state.qcm_actuel
+        st.markdown(f"**{len(qcm)} questions — matière : {matiere_choisie}**")
+
+        for i, q in enumerate(qcm):
+            st.markdown(f"**{i+1}. {q['question']}** *({q['sujet']})*")
+            choix = st.radio(
+                f"question_{i}",
+                options=list(range(len(q["options"]))),
+                format_func=lambda idx, opts=q["options"]: opts[idx],
+                key=f"qcm_radio_{i}",
+                label_visibility="collapsed",
+            )
+            st.session_state.qcm_reponses[i] = choix
+            st.markdown("---")
+
+        if st.button("✅ Corriger le QCM"):
+            st.session_state.qcm_corrige = True
+
+        if st.session_state.get("qcm_corrige"):
+            score = sum(
+                1 for i, q in enumerate(qcm)
+                if st.session_state.qcm_reponses.get(i) == q["bonne_reponse_idx"]
+            )
+            st.success(f"Score : {score} / {len(qcm)}")
+            for i, q in enumerate(qcm):
+                bonne = q["bonne_reponse_idx"]
+                donnee = st.session_state.qcm_reponses.get(i)
+                if donnee == bonne:
+                    st.markdown(f"✅ Question {i+1} : correcte")
+                else:
+                    st.markdown(f"❌ Question {i+1} : incorrecte — bonne réponse : *{q['options'][bonne]}*")
+
 
 # Charger le modèle et l'index RAG (une seule fois, mis en cache)
 try:
