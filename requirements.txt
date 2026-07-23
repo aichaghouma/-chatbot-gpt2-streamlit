@@ -6,3 +6,4 @@ deep-translator
 SpeechRecognition
 gTTS
 requests
+huggingface_hub>=0.24
