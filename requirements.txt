@@ -5,3 +5,4 @@ scikit-learn
 deep-translator
 SpeechRecognition
 gTTS
+requests
