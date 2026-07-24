@@ -3,7 +3,6 @@ import torch
 import re
 import io
 import random
-import requests
 import speech_recognition as sr
 from gtts import gTTS
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
@@ -89,44 +88,6 @@ def generer_qcm(matiere, nb_questions=5):
     return qcm
 
 # ============================================================
-# ANALYSE D'IMAGE (via API d'inférence Hugging Face)
-# ============================================================
-
-HF_VISION_MODELS = [
-    "Salesforce/blip-image-captioning-large",
-    "Salesforce/blip-image-captioning-base",
-    "nlpconnect/vit-gpt2-image-captioning",
-    "microsoft/git-base",
-]
-
-
-def analyser_image(image_bytes):
-    """Envoie l'image à un modèle de vision hébergé sur Hugging Face et retourne une description (en anglais).
-    Essaie plusieurs modèles en cascade, certains pouvant ne plus être disponibles via le fournisseur gratuit."""
-    from huggingface_hub import InferenceClient
-    from huggingface_hub.errors import HfHubHTTPError
-
-    hf_token = st.secrets.get("HF_TOKEN") if hasattr(st, "secrets") else None
-    client = InferenceClient(provider="hf-inference", token=hf_token) if hf_token else InferenceClient(provider="hf-inference")
-
-    derniere_erreur = None
-    for nom_modele in HF_VISION_MODELS:
-        try:
-            resultat = client.image_to_text(image_bytes, model=nom_modele)
-            texte = resultat.generated_text if hasattr(resultat, "generated_text") else str(resultat)
-            return texte, None
-        except HfHubHTTPError as e:
-            if "503" in str(e):
-                derniere_erreur = "Le modèle de vision est en cours de chargement sur les serveurs Hugging Face. Réessaie dans 20-30 secondes."
-                continue
-            derniere_erreur = f"Erreur HTTP Hugging Face [{type(e).__name__}] : {e!r}"
-            continue  # essayer le modèle suivant
-        except Exception as e:
-            derniere_erreur = f"Erreur [{type(e).__name__}] lors de l'analyse de l'image : {e!r}"
-            continue
-
-    return None, derniere_erreur or "Aucun modèle de vision disponible pour le moment."
-
 # ============================================================
 # DETECTION DE LANGUE ET TRADUCTION
 # ============================================================
@@ -501,40 +462,6 @@ with st.expander("📝 Générer un QCM / Examen"):
                     st.markdown(f"✅ Question {i+1} : correcte")
                 else:
                     st.markdown(f"❌ Question {i+1} : incorrecte — bonne réponse : *{q['options'][bonne]}*")
-
-# ============================================================
-# SECTION ANALYSE D'IMAGE
-# ============================================================
-
-with st.expander("🖼️ Analyser une image (fonctionnalité expérimentale)"):
-    st.markdown(
-        "Envoie une image et le chatbot tentera de la décrire "
-        "(via un modèle de vision hébergé gratuitement sur Hugging Face)."
-    )
-    st.caption(
-        "⚠️ Fonctionnalité expérimentale : l'API gratuite de vision de Hugging Face évolue "
-        "rapidement (système de fournisseurs d'inférence), et la disponibilité des modèles "
-        "n'est pas garantie. Si l'analyse échoue, ce n'est pas un bug de l'application mais "
-        "une limite actuelle du service gratuit utilisé."
-    )
-    image_uploadee = st.file_uploader("Choisis une image", type=["png", "jpg", "jpeg"])
-
-    if image_uploadee is not None:
-        st.image(image_uploadee, caption="Image envoyée", width=300)
-
-        if st.button("🔍 Analyser cette image"):
-            with st.spinner("Analyse de l'image en cours..."):
-                description, erreur = analyser_image(image_uploadee.getvalue())
-
-            if description:
-                st.success(f"**Description :** {description}")
-                try:
-                    description_fr = traduire_en_francais(description)
-                    st.caption(f"🇫🇷 {description_fr}")
-                except Exception:
-                    pass
-            else:
-                st.warning(f"Analyse indisponible pour le moment. Détail technique : {erreur}")
 
 
 # Charger le modèle et l'index RAG (une seule fois, mis en cache)
