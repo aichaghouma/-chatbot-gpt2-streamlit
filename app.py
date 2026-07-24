@@ -103,7 +103,7 @@ def analyser_image(image_bytes):
     hf_token = st.secrets.get("HF_TOKEN") if hasattr(st, "secrets") else None
 
     try:
-        client = InferenceClient(token=hf_token) if hf_token else InferenceClient()
+        client = InferenceClient(provider="hf-inference", token=hf_token) if hf_token else InferenceClient(provider="hf-inference")
         resultat = client.image_to_text(image_bytes, model=HF_VISION_MODEL)
         texte = resultat.generated_text if hasattr(resultat, "generated_text") else str(resultat)
         return texte, None
