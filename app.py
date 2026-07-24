@@ -107,7 +107,7 @@ def analyser_image(image_bytes):
     from huggingface_hub.errors import HfHubHTTPError
 
     hf_token = st.secrets.get("HF_TOKEN") if hasattr(st, "secrets") else None
-    client = InferenceClient(token=hf_token) if hf_token else InferenceClient()
+    client = InferenceClient(provider="hf-inference", token=hf_token) if hf_token else InferenceClient(provider="hf-inference")
 
     derniere_erreur = None
     for nom_modele in HF_VISION_MODELS:
