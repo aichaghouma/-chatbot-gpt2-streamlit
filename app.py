@@ -92,27 +92,40 @@ def generer_qcm(matiere, nb_questions=5):
 # ANALYSE D'IMAGE (via API d'inférence Hugging Face)
 # ============================================================
 
-HF_VISION_MODEL = "Salesforce/blip-image-captioning-base"
+HF_VISION_MODELS = [
+    "Salesforce/blip-image-captioning-large",
+    "Salesforce/blip-image-captioning-base",
+    "nlpconnect/vit-gpt2-image-captioning",
+    "microsoft/git-base",
+]
 
 
 def analyser_image(image_bytes):
-    """Envoie l'image à un modèle de vision hébergé sur Hugging Face et retourne une description (en anglais)."""
+    """Envoie l'image à un modèle de vision hébergé sur Hugging Face et retourne une description (en anglais).
+    Essaie plusieurs modèles en cascade, certains pouvant ne plus être disponibles via le fournisseur gratuit."""
     from huggingface_hub import InferenceClient
     from huggingface_hub.errors import HfHubHTTPError
 
     hf_token = st.secrets.get("HF_TOKEN") if hasattr(st, "secrets") else None
+    client = InferenceClient(provider="hf-inference", token=hf_token) if hf_token else InferenceClient(provider="hf-inference")
 
-    try:
-        client = InferenceClient(provider="hf-inference", token=hf_token) if hf_token else InferenceClient(provider="hf-inference")
-        resultat = client.image_to_text(image_bytes, model=HF_VISION_MODEL)
-        texte = resultat.generated_text if hasattr(resultat, "generated_text") else str(resultat)
-        return texte, None
-    except HfHubHTTPError as e:
-        if "503" in str(e):
-            return None, "Le modèle de vision est en cours de chargement sur les serveurs Hugging Face (premier appel). Réessaie dans 20-30 secondes."
-        return None, f"Erreur HTTP Hugging Face [{type(e).__name__}] : {e!r}"
-    except Exception as e:
-        return None, f"Erreur [{type(e).__name__}] lors de l'analyse de l'image : {e!r}"
+    derniere_erreur = None
+    for nom_modele in HF_VISION_MODELS:
+        try:
+            resultat = client.image_to_text(image_bytes, model=nom_modele)
+            texte = resultat.generated_text if hasattr(resultat, "generated_text") else str(resultat)
+            return texte, None
+        except HfHubHTTPError as e:
+            if "503" in str(e):
+                derniere_erreur = "Le modèle de vision est en cours de chargement sur les serveurs Hugging Face. Réessaie dans 20-30 secondes."
+                continue
+            derniere_erreur = f"Erreur HTTP Hugging Face [{type(e).__name__}] : {e!r}"
+            continue  # essayer le modèle suivant
+        except Exception as e:
+            derniere_erreur = f"Erreur [{type(e).__name__}] lors de l'analyse de l'image : {e!r}"
+            continue
+
+    return None, derniere_erreur or "Aucun modèle de vision disponible pour le moment."
 
 # ============================================================
 # DETECTION DE LANGUE ET TRADUCTION
