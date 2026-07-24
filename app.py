@@ -506,10 +506,16 @@ with st.expander("📝 Générer un QCM / Examen"):
 # SECTION ANALYSE D'IMAGE
 # ============================================================
 
-with st.expander("🖼️ Analyser une image"):
+with st.expander("🖼️ Analyser une image (fonctionnalité expérimentale)"):
     st.markdown(
-        "Envoie une image et le chatbot te décrira ce qu'elle contient "
-        "(via un modèle de vision hébergé sur Hugging Face — description en anglais, traduite si besoin)."
+        "Envoie une image et le chatbot tentera de la décrire "
+        "(via un modèle de vision hébergé gratuitement sur Hugging Face)."
+    )
+    st.caption(
+        "⚠️ Fonctionnalité expérimentale : l'API gratuite de vision de Hugging Face évolue "
+        "rapidement (système de fournisseurs d'inférence), et la disponibilité des modèles "
+        "n'est pas garantie. Si l'analyse échoue, ce n'est pas un bug de l'application mais "
+        "une limite actuelle du service gratuit utilisé."
     )
     image_uploadee = st.file_uploader("Choisis une image", type=["png", "jpg", "jpeg"])
 
@@ -528,7 +534,7 @@ with st.expander("🖼️ Analyser une image"):
                 except Exception:
                     pass
             else:
-                st.warning(erreur)
+                st.warning(f"Analyse indisponible pour le moment. Détail technique : {erreur}")
 
 
 # Charger le modèle et l'index RAG (une seule fois, mis en cache)
