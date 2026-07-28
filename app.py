@@ -5,6 +5,7 @@ import io
 import random
 import speech_recognition as sr
 from gtts import gTTS
+from docx import Document as DocxDocument
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from sklearn.metrics.pairwise import cosine_similarity
@@ -125,6 +126,71 @@ def traduire_en_francais(texte_anglais):
 
 MOTS_TRADUCTION = ["traduire", "traduis", "traduction de", "translate"]
 
+MOTS_LANGUE_CIBLE = {
+    "fr": ["en français", "en francais", "vers le français", "vers le francais", "to french", "into french", "in french"],
+    "en": ["en anglais", "vers l'anglais", "vers langlais", "to english", "into english", "in english"],
+    "ar": ["en arabe", "vers l'arabe", "vers larabe", "to arabic", "into arabic", "in arabic"],
+}
+NOMS_LANGUE = {"fr": "français", "en": "anglais", "ar": "arabe"}
+
+
+def detecter_langue_texte(texte):
+    """Détecte la langue probable d'un texte court (français, anglais ou arabe)."""
+    if re.search(r'[\u0600-\u06FF]', texte):
+        return "ar"
+    if est_francais(texte):
+        return "fr"
+    return "en"
+
+
+def detecter_demande_traduction(question):
+    """Détecte une demande de traduction et extrait le texte + la langue cible.
+    Le format avec ':' est le plus fiable, mais fonctionne aussi sans."""
+    q = question.lower()
+    if not any(m in q for m in MOTS_TRADUCTION):
+        return None
+
+    cible = None
+    for code, variantes in MOTS_LANGUE_CIBLE.items():
+        if any(v in q for v in variantes):
+            cible = code
+            break  # déduite automatiquement (langue opposée du texte) si non précisée
+
+    if ":" in question:
+        texte = question.split(":", 1)[1].strip()
+    else:
+        texte = question
+        toutes_variantes_langue = [v for variantes in MOTS_LANGUE_CIBLE.values() for v in variantes]
+        a_retirer = MOTS_TRADUCTION + toutes_variantes_langue + ["cette phrase", "ce texte", "this sentence", "?"]
+        for m in a_retirer:
+            texte = re.sub(re.escape(m), "", texte, flags=re.IGNORECASE)
+        texte = texte.strip(" :.-")
+
+    if not texte:
+        return None
+    return texte, cible
+
+
+def executer_traduction(texte, cible):
+    """Traduit un texte donné vers la langue cible (déduite automatiquement si None).
+    Retourne (texte_affichage, texte_audio_pur, cible_est_francais)."""
+    try:
+        source = detecter_langue_texte(texte)
+        if cible is None:
+            # langue cible par défaut si non précisée : opposée à la langue détectée du texte
+            cible = "en" if source == "fr" else "fr"
+        if cible == source:
+            # évite un appel de traduction inutile si source == cible détectée par erreur
+            source = "auto"
+        traduction = GoogleTranslator(source=source, target=cible).translate(texte)
+        langue_nom = NOMS_LANGUE.get(cible, cible)
+        affichage = f'"{texte}" → **{traduction}** ({langue_nom})'
+        return affichage, traduction, (cible == "fr")
+    except Exception:
+        msg = "Désolé, la traduction n'a pas pu être effectuée (problème de connexion)."
+        return msg, msg, True
+
+
 # ============================================================
 # DETECTION DE CONVERSION DE DEVISES (hors de portée, réponse honnête)
 # ============================================================
@@ -143,50 +209,6 @@ def est_demande_devise(question):
     return nb_mots_devise >= 2  # au moins 2 mentions de devises (ex: dinar + euro)
 
 
-def detecter_demande_traduction(question):
-    """Détecte une demande de traduction et extrait le texte + la langue cible."""
-    q = question.lower()
-    if not any(m in q for m in MOTS_TRADUCTION):
-        return None
-
-    if any(m in q for m in ["en anglais", "into english", "to english", "in english"]):
-        cible = "en"
-    elif any(m in q for m in ["en français", "en francais", "into french", "to french", "in french"]):
-        cible = "fr"
-    else:
-        cible = None  # déduite automatiquement selon la langue détectée du texte
-
-    if ":" in question:
-        texte = question.split(":", 1)[1].strip()
-    else:
-        texte = question
-        a_retirer = MOTS_TRADUCTION + ["en anglais", "en français", "en francais", "into english",
-                                        "into french", "cette phrase", "ce texte", "this sentence", "?"]
-        for m in a_retirer:
-            texte = re.sub(re.escape(m), "", texte, flags=re.IGNORECASE)
-        texte = texte.strip(" :.-")
-
-    if not texte:
-        return None
-    return texte, cible
-
-
-def executer_traduction(texte, cible):
-    """Traduit un texte donné vers la langue cible (déduite automatiquement si None).
-    Retourne (texte_affichage, texte_audio_pur, cible_est_francais)."""
-    try:
-        if cible is None:
-            cible = "en" if est_francais(texte) else "fr"
-        source = "fr" if cible == "en" else "en"
-        traduction = GoogleTranslator(source=source, target=cible).translate(texte)
-        langue_nom = {"en": "anglais", "fr": "français"}[cible]
-        affichage = f'"{texte}" → **{traduction}** ({langue_nom})'
-        return affichage, traduction, (cible == "fr")
-    except Exception:
-        msg = "Désolé, la traduction n'a pas pu être effectuée (problème de connexion)."
-        return msg, msg, True
-
-
 # ============================================================
 # CALCULATEUR ARITHMÉTIQUE (priorité absolue avant l'IA)
 # ============================================================
@@ -195,34 +217,36 @@ def executer_traduction(texte, cible):
 # pour de très grands nombres.
 
 def calculer_expression(question):
-    """Détecte et calcule une opération arithmétique simple (+, -, *, /)."""
+    """Détecte et calcule une expression arithmétique complète (+, -, *, /, parenthèses),
+    en respectant les priorités mathématiques (ex: 3*2+140 = 146, pas 3*142)."""
     q = question.replace(" ", "")
-    match = re.search(r'(-?\d+\.?\d*)([\+\-\*x×/])(-?\d+\.?\d*)', q)
+    match = re.search(r'[\d\.\+\-\*x×/\(\)]{3,}', q)
     if not match:
         return None
 
-    a_str, op, b_str = match.groups()
-    a = int(a_str) if "." not in a_str else float(a_str)
-    b = int(b_str) if "." not in b_str else float(b_str)
+    expr = match.group().rstrip("+-*/x×.")  # retire un opérateur resté en trop à la fin
+    if not expr:
+        return None
+
+    expr_calc = expr.replace("x", "*").replace("×", "*")
+    # sécurité : uniquement chiffres/opérateurs/parenthèses autorisés avant eval()
+    if not re.fullmatch(r'[\d\.\+\-\*/\(\)]+', expr_calc):
+        return None
+    if expr_calc.count("(") != expr_calc.count(")"):
+        return None
 
     try:
-        if op == "+":
-            resultat = a + b
-        elif op == "-":
-            resultat = a - b
-        elif op in ("*", "x", "×"):
-            resultat = a * b
-        elif op == "/":
-            if b == 0:
-                return "Division by zero is undefined."
-            resultat = a / b
-        else:
-            return None
+        resultat = eval(expr_calc, {"__builtins__": {}}, {})
+    except ZeroDivisionError:
+        return "Division by zero is undefined."
     except Exception:
         return None
 
-    op_disp = "×" if op in ("*", "x", "×") else op
-    return f"{a} {op_disp} {b} = {resultat}"
+    if isinstance(resultat, float) and resultat == int(resultat):
+        resultat = int(resultat)
+
+    expr_affichage = expr.replace("x", "×").replace("*", "×")
+    return f"{expr_affichage} = {resultat}"
 
 
 # ============================================================
@@ -288,9 +312,30 @@ def construire_index_rag():
     return vectorizer, matrix
 
 
+# Acronymes et synonymes courants -> forme complète, pour mieux matcher les reformulations
+EXPANSIONS_SYNONYMES = {
+    "ml": "machine learning", "ai": "artificial intelligence", "dl": "deep learning",
+    "db": "database", "os": "operating system", "ui": "user interface",
+    "ux": "user experience", "api": "application programming interface",
+    "nn": "neural network", "nlp": "natural language processing",
+    "cs": "computer science", "iot": "internet of things",
+}
+
+
+def etendre_synonymes(texte):
+    """Remplace les acronymes courants par leur forme complète pour améliorer le matching RAG."""
+    mots = texte.split()
+    mots_etendus = []
+    for m in mots:
+        m_propre = re.sub(r"[^a-zA-Z]", "", m).lower()
+        mots_etendus.append(EXPANSIONS_SYNONYMES.get(m_propre, m))
+    return " ".join(mots_etendus)
+
+
 def chercher_dans_base(question, vectorizer, matrix):
     """Trouve la fiche la plus pertinente pour la question, si elle existe."""
-    q_vec = vectorizer.transform([question])
+    question_etendue = etendre_synonymes(question)
+    q_vec = vectorizer.transform([question_etendue])
     scores = cosine_similarity(q_vec, matrix)[0]
     idx = scores.argmax()
     if scores[idx] >= SEUIL_SIMILARITE:
@@ -608,8 +653,36 @@ if modele_charge:
 
         st.session_state.messages.append({"role": "assistant", "content": reponse, "audio": audio_reponse})
 
-    # Bouton pour réinitialiser la conversation
-    if st.session_state.messages:
-        if st.button("🗑️ Réinitialiser la conversation"):
-            st.session_state.messages = []
-            st.rerun()
+    # Export Word et réinitialisation
+    col_export, col_reset = st.columns(2)
+
+    with col_export:
+        if st.session_state.messages:
+            def generer_docx_conversation(messages):
+                doc = DocxDocument()
+                doc.add_heading("Conversation — Chatbot GPT-2 + RAG", level=1)
+                for msg in messages:
+                    role = "Vous" if msg["role"] == "user" else "Chatbot"
+                    p = doc.add_paragraph()
+                    p.add_run(f"{role} : ").bold = True
+                    p.add_run(msg["content"])
+                buffer = io.BytesIO()
+                doc.save(buffer)
+                buffer.seek(0)
+                return buffer
+
+            docx_buffer = generer_docx_conversation(st.session_state.messages)
+            st.download_button(
+                "📄 Exporter la conversation (Word)",
+                data=docx_buffer,
+                file_name="conversation_chatbot.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+
+    with col_reset:
+        # Bouton pour réinitialiser la conversation
+        if st.session_state.messages:
+            if st.button("🗑️ Réinitialiser la conversation"):
+                st.session_state.messages = []
+                st.rerun()
+
