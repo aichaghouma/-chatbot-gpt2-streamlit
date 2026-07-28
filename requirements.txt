@@ -6,3 +6,4 @@ deep-translator
 SpeechRecognition
 gTTS
 huggingface_hub
+python-docx
