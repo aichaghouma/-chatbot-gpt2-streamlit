@@ -162,7 +162,7 @@ print("Chargement du modèle GPT-2...")
 device = torch.device("cpu")
 tokenizer = GPT2Tokenizer.from_pretrained(MODEL_NAME)
 model = GPT2LMHeadModel.from_pretrained(
-    MODEL_NAME, low_cpu_mem_usage=True
+    MODEL_NAME, low_cpu_mem_usage=True, torch_dtype=torch.bfloat16
 ).to(device)
 model.eval()
 print("Modèle chargé.")
