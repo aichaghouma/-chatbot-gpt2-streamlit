@@ -161,7 +161,9 @@ MODEL_NAME = "Aicha83/chatbot-gpt2-finetuned"
 print("Chargement du modèle GPT-2...")
 device = torch.device("cpu")
 tokenizer = GPT2Tokenizer.from_pretrained(MODEL_NAME)
-model = GPT2LMHeadModel.from_pretrained(MODEL_NAME).to(device)
+model = GPT2LMHeadModel.from_pretrained(
+    MODEL_NAME, low_cpu_mem_usage=True
+).to(device)
 model.eval()
 print("Modèle chargé.")
 
