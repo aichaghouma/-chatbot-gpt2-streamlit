@@ -1,10 +1,9 @@
-import torch
 import re
+import requests
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from sklearn.metrics.pairwise import cosine_similarity
 from deep_translator import GoogleTranslator
@@ -12,7 +11,7 @@ from deep_translator import GoogleTranslator
 from knowledge_base import KNOWLEDGE_BASE
 
 # ============================================================
-# (Reprise quasi intégrale de la logique de app.py, sans Streamlit)
+# (Reprise de la logique de app.py, sans Streamlit, sans PyTorch local)
 # ============================================================
 
 MOTS_FRANCAIS = {
@@ -130,42 +129,51 @@ def chercher_dans_base(question, vectorizer, matrix):
     return None, scores[idx]
 
 
-def generer_reponse(model, tokenizer, question, device, max_length=80, temperature=0.4):
-    model.eval()
+# ============================================================
+# GENERATION VIA L'API D'INFERENCE HUGGING FACE (à distance)
+# Remplace le chargement local de PyTorch/Transformers, trop lourd
+# en mémoire pour un hébergement gratuit (Render free = 512 Mo).
+# ============================================================
+
+MODEL_NAME = "Aicha83/chatbot-gpt2-finetuned"
+HF_API_URL = f"https://api-inference.huggingface.co/models/{MODEL_NAME}"
+
+
+def generer_reponse(question, max_length=80, temperature=0.4):
     prompt = f"Question: {question}\nAnswer:"
-    inputs = tokenizer(prompt, return_tensors="pt").to(device)
-    with torch.no_grad():
-        outputs = model.generate(
-            **inputs,
-            max_length=max_length,
-            temperature=temperature,
-            do_sample=True,
-            top_p=0.85,
-            repetition_penalty=1.15,
-            no_repeat_ngram_size=3,
-            pad_token_id=tokenizer.eos_token_id
+    try:
+        response = requests.post(
+            HF_API_URL,
+            json={
+                "inputs": prompt,
+                "parameters": {
+                    "max_new_tokens": max_length,
+                    "temperature": temperature,
+                    "do_sample": True,
+                    "top_p": 0.85,
+                    "repetition_penalty": 1.15,
+                    "return_full_text": False,
+                },
+                "options": {"wait_for_model": True},
+            },
+            timeout=30,
         )
-    reponse = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    reponse = reponse.split("Answer:")[-1].strip()
+        data = response.json()
+        if isinstance(data, list) and len(data) > 0 and "generated_text" in data[0]:
+            reponse = data[0]["generated_text"].strip()
+        else:
+            return "Le modèle est momentanément indisponible, réessaie dans quelques instants."
+    except Exception:
+        return "Le modèle est momentanément indisponible, réessaie dans quelques instants."
+
     phrases = re.split(r'(?<=[.!?])\s+', reponse)
     reponse_courte = " ".join(phrases[:2]).strip()
     return reponse_courte if reponse_courte else reponse
 
 
 # ============================================================
-# CHARGEMENT DU MODELE ET DE L'INDEX RAG (une seule fois, au démarrage)
+# CONSTRUCTION DE L'INDEX RAG (léger, tourne bien en local)
 # ============================================================
-
-MODEL_NAME = "Aicha83/chatbot-gpt2-finetuned"
-
-print("Chargement du modèle GPT-2...")
-device = torch.device("cpu")
-tokenizer = GPT2Tokenizer.from_pretrained(MODEL_NAME)
-model = GPT2LMHeadModel.from_pretrained(
-    MODEL_NAME, low_cpu_mem_usage=True, torch_dtype=torch.bfloat16
-).to(device)
-model.eval()
-print("Modèle chargé.")
 
 print("Construction de l'index RAG...")
 _textes = [f"{doc['title']} {doc['content']}" for doc in KNOWLEDGE_BASE]
@@ -186,8 +194,6 @@ print("Index RAG prêt.")
 
 app = FastAPI(title="Chatbot Éducatif API")
 
-# Autorise l'app Flutter (ou n'importe quelle origine) à appeler cette API.
-# Pratique en développement ; à restreindre plus tard si besoin.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -246,7 +252,7 @@ def chat(payload: QuestionRequest):
                 reponse = traduire_en_francais(reponse)
             badge = f"Réponse vérifiée : {doc_trouve['title']} ({doc_trouve['subject']}) — RAG"
         else:
-            reponse = generer_reponse(model, tokenizer, question_recherche, device)
+            reponse = generer_reponse(question_recherche)
             if francais:
                 reponse = traduire_en_francais(reponse)
             badge = "Réponse générée par GPT-2 (non vérifiée)"
@@ -255,6 +261,4 @@ def chat(payload: QuestionRequest):
 
 
 # Sert les fichiers de l'app Flutter (dossier "static") sur le même port.
-# IMPORTANT : cette ligne reste tout en bas, après toutes les routes /chat, /docs, etc.
-# sinon elle les "cacherait". html=True fait en sorte que "/" affiche index.html.
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
