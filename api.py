@@ -158,12 +158,14 @@ def generer_reponse(question, max_length=80, temperature=0.4):
             },
             timeout=30,
         )
+        print(f"[HF] status={response.status_code} body={response.text[:300]}")
         data = response.json()
         if isinstance(data, list) and len(data) > 0 and "generated_text" in data[0]:
             reponse = data[0]["generated_text"].strip()
         else:
             return "Le modèle est momentanément indisponible, réessaie dans quelques instants."
-    except Exception:
+    except Exception as e:
+        print(f"[HF] exception: {e}")
         return "Le modèle est momentanément indisponible, réessaie dans quelques instants."
 
     phrases = re.split(r'(?<=[.!?])\s+', reponse)
@@ -262,3 +264,4 @@ def chat(payload: QuestionRequest):
 
 # Sert les fichiers de l'app Flutter (dossier "static") sur le même port.
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
