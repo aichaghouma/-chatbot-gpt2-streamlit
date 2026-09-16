@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from sklearn.metrics.pairwise import cosine_similarity
-from deep_translator import GoogleTranslator
+from deep_translator import GoogleTranslator, MyMemoryTranslator
 
 from knowledge_base import KNOWLEDGE_BASE
 
@@ -32,9 +32,23 @@ def est_francais(question):
     return False
 
 
+def traduire_avec_secours(texte, source, cible):
+    """Essaie GoogleTranslator, puis MyMemoryTranslator en secours si le premier
+    est limité (rate-limit) ou indisponible."""
+    try:
+        return GoogleTranslator(source=source, target=cible).translate(texte)
+    except Exception as e:
+        print(f"[Traduction] GoogleTranslator échec : {e}")
+        try:
+            return MyMemoryTranslator(source=source, target=cible).translate(texte)
+        except Exception as e2:
+            print(f"[Traduction] MyMemoryTranslator échec aussi : {e2}")
+            raise
+
+
 def traduire_en_francais(texte_anglais):
     try:
-        return GoogleTranslator(source="en", target="fr").translate(texte_anglais)
+        return traduire_avec_secours(texte_anglais, "en", "fr")
     except Exception:
         return texte_anglais + "\n\n(Traduction indisponible, réponse affichée en anglais)"
 
@@ -135,35 +149,30 @@ def chercher_dans_base(question, vectorizer, matrix):
 # en mémoire pour un hébergement gratuit (Render free = 512 Mo).
 # ============================================================
 
+# Remplace le chargement local de PyTorch/Transformers, trop lourd
+# en mémoire pour un hébergement gratuit (Render free = 512 Mo).
+# On utilise la bibliothèque officielle huggingface_hub, qui gère
+# elle-même l'adresse actuelle du service (plus fiable qu'une URL fixe).
+# ============================================================
+
+from huggingface_hub import InferenceClient
+
 MODEL_NAME = "Aicha83/chatbot-gpt2-finetuned"
-HF_API_URL = f"https://api-inference.huggingface.co/models/{MODEL_NAME}"
+_hf_client = InferenceClient(model=MODEL_NAME)
 
 
 def generer_reponse(question, max_length=80, temperature=0.4):
     prompt = f"Question: {question}\nAnswer:"
     try:
-        response = requests.post(
-            HF_API_URL,
-            json={
-                "inputs": prompt,
-                "parameters": {
-                    "max_new_tokens": max_length,
-                    "temperature": temperature,
-                    "do_sample": True,
-                    "top_p": 0.85,
-                    "repetition_penalty": 1.15,
-                    "return_full_text": False,
-                },
-                "options": {"wait_for_model": True},
-            },
-            timeout=30,
-        )
-        print(f"[HF] status={response.status_code} body={response.text[:300]}")
-        data = response.json()
-        if isinstance(data, list) and len(data) > 0 and "generated_text" in data[0]:
-            reponse = data[0]["generated_text"].strip()
-        else:
-            return "Le modèle est momentanément indisponible, réessaie dans quelques instants."
+        reponse = _hf_client.text_generation(
+            prompt,
+            max_new_tokens=max_length,
+            temperature=temperature,
+            do_sample=True,
+            top_p=0.85,
+            repetition_penalty=1.15,
+        ).strip()
+        print(f"[HF] réponse reçue : {reponse[:200]}")
     except Exception as e:
         print(f"[HF] exception: {e}")
         return "Le modèle est momentanément indisponible, réessaie dans quelques instants."
@@ -221,7 +230,7 @@ def chat(payload: QuestionRequest):
     question_recherche = question
     if francais:
         try:
-            question_recherche = GoogleTranslator(source="fr", target="en").translate(question)
+            question_recherche = traduire_avec_secours(question, "fr", "en")
         except Exception as e:
             print(f"[Traduction] échec : {e}")
             question_recherche = question
