@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 requests
+huggingface_hub
 scikit-learn
 deep-translator
 aiofiles
