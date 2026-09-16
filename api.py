@@ -222,7 +222,8 @@ def chat(payload: QuestionRequest):
     if francais:
         try:
             question_recherche = GoogleTranslator(source="fr", target="en").translate(question)
-        except Exception:
+        except Exception as e:
+            print(f"[Traduction] échec : {e}")
             question_recherche = question
 
     reponse_calcul = calculer_expression(question)
@@ -237,6 +238,10 @@ def chat(payload: QuestionRequest):
         badge = "Réponse vérifiée (base de capitales)"
     else:
         doc_trad, score_trad = chercher_dans_base(question_recherche, vectorizer, matrix)
+        if doc_trad and doc_trad["subject"] in ("French", "English") and question_recherche == question:
+            # La "traduction" a échoué et renvoyé le texte original (probablement encore
+            # en français) : on ignore un faux-positif sur les fiches de grammaire.
+            doc_trad, score_trad = None, 0
         if francais:
             doc_brut, score_brut = chercher_dans_base(question, vectorizer, matrix)
             if doc_brut and doc_brut["subject"] in ("French", "English"):
@@ -264,4 +269,3 @@ def chat(payload: QuestionRequest):
 
 # Sert les fichiers de l'app Flutter (dossier "static") sur le même port.
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
-
