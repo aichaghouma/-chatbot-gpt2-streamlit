@@ -179,7 +179,7 @@ def generer_reponse(question, max_length=80, temperature=0.4):
         ).strip()
         print(f"[HF] réponse reçue : {reponse[:200]}")
     except Exception as e:
-        print(f"[HF] exception: {e}")
+        print(f"[HF] exception: type={type(e).__name__} repr={e!r}")
         return "Le modèle est momentanément indisponible, réessaie dans quelques instants."
 
     phrases = re.split(r'(?<=[.!?])\s+', reponse)
