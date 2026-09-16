@@ -32,6 +32,9 @@ def est_francais(question):
     return False
 
 
+_CODES_MYMEMORY = {"fr": "fr-FR", "en": "en-GB"}
+
+
 def traduire_avec_secours(texte, source, cible):
     """Essaie GoogleTranslator, puis MyMemoryTranslator en secours si le premier
     est limité (rate-limit) ou indisponible."""
@@ -40,7 +43,9 @@ def traduire_avec_secours(texte, source, cible):
     except Exception as e:
         print(f"[Traduction] GoogleTranslator échec : {e}")
         try:
-            return MyMemoryTranslator(source=source, target=cible).translate(texte)
+            source_mm = _CODES_MYMEMORY.get(source, source)
+            cible_mm = _CODES_MYMEMORY.get(cible, cible)
+            return MyMemoryTranslator(source=source_mm, target=cible_mm).translate(texte)
         except Exception as e2:
             print(f"[Traduction] MyMemoryTranslator échec aussi : {e2}")
             raise
