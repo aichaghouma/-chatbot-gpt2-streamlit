@@ -13,6 +13,19 @@ from knowledge_base import KNOWLEDGE_BASE
 # ============================================================
 # (Reprise de la logique de app.py, sans Streamlit, sans PyTorch local)
 # ============================================================
+MOTS_CLES_ERREUR_TRADUCTION = [
+    "MYMEMORY WARNING", "QUERY LENGTH LIMIT", "INVALID SOURCE",
+    "INVALID TARGET", "TRANSLATION UNAVAILABLE", "AVAILABLE FREE TRANSLATIONS",
+]
+
+def traduction_est_valide(texte_original, texte_traduit):
+    if not texte_traduit or not texte_traduit.strip():
+        return False
+    if any(mot in texte_traduit.upper() for mot in MOTS_CLES_ERREUR_TRADUCTION):
+        return False
+    if texte_traduit.strip() == texte_original.strip():
+        return False
+    return True
 
 MOTS_FRANCAIS = {
     "quelle", "quel", "quels", "quelles", "qu'est-ce", "qu est ce",
@@ -36,16 +49,20 @@ _CODES_MYMEMORY = {"fr": "fr-FR", "en": "en-GB"}
 
 
 def traduire_avec_secours(texte, source, cible):
-    """Essaie GoogleTranslator, puis MyMemoryTranslator en secours si le premier
-    est limité (rate-limit) ou indisponible."""
     try:
-        return GoogleTranslator(source=source, target=cible).translate(texte)
+        resultat = GoogleTranslator(source=source, target=cible).translate(texte)
+        if not traduction_est_valide(texte, resultat):
+            raise ValueError("Traduction Google invalide")
+        return resultat
     except Exception as e:
         print(f"[Traduction] GoogleTranslator échec : {e}")
         try:
             source_mm = _CODES_MYMEMORY.get(source, source)
             cible_mm = _CODES_MYMEMORY.get(cible, cible)
-            return MyMemoryTranslator(source=source_mm, target=cible_mm).translate(texte)
+            resultat = MyMemoryTranslator(source=source_mm, target=cible_mm).translate(texte)
+            if not traduction_est_valide(texte, resultat):
+                raise ValueError("Traduction MyMemory invalide")
+            return resultat
         except Exception as e2:
             print(f"[Traduction] MyMemoryTranslator échec aussi : {e2}")
             raise
