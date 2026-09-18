@@ -583,7 +583,7 @@ if modele_charge:
 
                 # Si la question est en français, on la traduit en anglais pour la recherche
                 # (la base de connaissances est en anglais) — on garde la question originale pour l'affichage
-                                question_recherche = question
+                question_recherche = question
                 if francais:
                     try:
                         resultat = GoogleTranslator(source="fr", target="en").translate(question)
