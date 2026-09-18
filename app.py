@@ -16,6 +16,19 @@ from knowledge_base import KNOWLEDGE_BASE
 # ============================================================
 # ASR (Reconnaissance vocale) ET TTS (Synthèse vocale)
 # ============================================================
+MOTS_CLES_ERREUR_TRADUCTION = [
+    "MYMEMORY WARNING", "QUERY LENGTH LIMIT", "INVALID SOURCE",
+    "INVALID TARGET", "TRANSLATION UNAVAILABLE", "AVAILABLE FREE TRANSLATIONS",
+]
+
+def traduction_est_valide(texte_original, texte_traduit):
+    if not texte_traduit or not texte_traduit.strip():
+        return False
+    if any(mot in texte_traduit.upper() for mot in MOTS_CLES_ERREUR_TRADUCTION):
+        return False
+    if texte_traduit.strip() == texte_original.strip():
+        return False
+    return True
 
 def transcrire_audio(audio_bytes):
     """Transcrit un fichier audio (bytes WAV) en texte, via Google Web Speech API (gratuit)."""
@@ -113,9 +126,11 @@ def est_francais(question):
 
 
 def traduire_en_francais(texte_anglais):
-    """Traduit un texte anglais en français. En cas d'échec, renvoie le texte original + note."""
     try:
-        return GoogleTranslator(source="en", target="fr").translate(texte_anglais)
+        resultat = GoogleTranslator(source="en", target="fr").translate(texte_anglais)
+        if not traduction_est_valide(texte_anglais, resultat):
+            raise ValueError("Traduction invalide")
+        return resultat
     except Exception:
         return texte_anglais + "\n\n*(Traduction indisponible, réponse affichée en anglais)*"
 
@@ -183,6 +198,8 @@ def executer_traduction(texte, cible):
             # évite un appel de traduction inutile si source == cible détectée par erreur
             source = "auto"
         traduction = GoogleTranslator(source=source, target=cible).translate(texte)
+        if not traduction_est_valide(texte, traduction):
+            raise ValueError("Traduction invalide")
         langue_nom = NOMS_LANGUE.get(cible, cible)
         affichage = f'"{texte}" → **{traduction}** ({langue_nom})'
         return affichage, traduction, (cible == "fr")
@@ -566,10 +583,11 @@ if modele_charge:
 
                 # Si la question est en français, on la traduit en anglais pour la recherche
                 # (la base de connaissances est en anglais) — on garde la question originale pour l'affichage
-                question_recherche = question
+                                question_recherche = question
                 if francais:
                     try:
-                        question_recherche = GoogleTranslator(source="fr", target="en").translate(question)
+                        resultat = GoogleTranslator(source="fr", target="en").translate(question)
+                        question_recherche = resultat if traduction_est_valide(question, resultat) else question
                     except Exception:
                         question_recherche = question  # si la traduction échoue, on cherche avec le texte original
 
