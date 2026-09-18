@@ -9,9 +9,30 @@ from docx import Document as DocxDocument
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from sklearn.metrics.pairwise import cosine_similarity
-from deep_translator import GoogleTranslator
+
+
 
 from knowledge_base import KNOWLEDGE_BASE
+from deep_translator import GoogleTranslator, MyMemoryTranslator
+
+_CODES_MYMEMORY = {"fr": "fr-FR", "en": "en-GB"}
+
+def traduire_avec_secours(texte, source, cible):
+    try:
+        resultat = GoogleTranslator(source=source, target=cible).translate(texte)
+        if not traduction_est_valide(texte, resultat):
+            raise ValueError("Traduction Google invalide")
+        return resultat
+    except Exception:
+        try:
+            source_mm = _CODES_MYMEMORY.get(source, source)
+            cible_mm = _CODES_MYMEMORY.get(cible, cible)
+            resultat = MyMemoryTranslator(source=source_mm, target=cible_mm).translate(texte)
+            if not traduction_est_valide(texte, resultat):
+                raise ValueError("Traduction MyMemory invalide")
+            return resultat
+        except Exception:
+            raise
 
 # ============================================================
 # ASR (Reconnaissance vocale) ET TTS (Synthèse vocale)
