@@ -617,6 +617,7 @@ if modele_charge:
         st.session_state.messages.append({"role": "user", "content": question})
 
         # Générer et afficher la réponse
+        
         with st.chat_message("assistant"):
             with st.spinner("Génération de la réponse..."):
                 francais = est_francais(question)
@@ -654,12 +655,10 @@ if modele_charge:
                 elif reponse_calcul:
                     reponse = reponse_calcul
                     badge = "🧮 Calcul exact (Python)"
-                # 0.5 Vérifier si c'est une demande de traduction
                 elif demande_trad:
                     texte, cible = demande_trad
                     reponse, texte_audio, audio_est_francais = executer_traduction(texte, cible)
                     badge = "🌐 Traduction"
-                # 1. Vérifier ensuite si c'est une question de capitale
                 elif chercher_capitale(question_recherche):
                     reponse = chercher_capitale(question_recherche)
                     if francais:
@@ -669,13 +668,9 @@ if modele_charge:
                     # 2. Chercher dans la base de connaissances multi-matières
                     vocabulaire = construire_vocabulaire()
                     question_recherche_corrigee = corriger_question(question_recherche, vocabulaire)
-                    # On essaie à la fois la version traduite ET la version originale
-                    # (la traduction peut corrompre des acronymes techniques comme "MOSFET", "TCP", etc.)
                     doc_trad, score_trad = chercher_dans_base(question_recherche_corrigee, vectorizer, matrix)
                     if francais:
                         doc_brut, score_brut = chercher_dans_base(question, vectorizer, matrix)
-                        # On ignore un match "brut" venant des fiches de grammaire (French/English) :
-                        # elles captent à tort des mots français/anglais génériques sans rapport avec le sujet
                         if doc_brut and doc_brut["subject"] in ("French", "English"):
                             doc_brut, score_brut = None, 0
                         if doc_brut and score_brut > score_trad:
@@ -685,31 +680,12 @@ if modele_charge:
                     else:
                         doc_trouve, score = doc_trad, score_trad
 
-                    
-
-                st.caption(badge)
-            st.markdown(reponse)
-
-            audio_reponse = None
-            if st.session_state.lire_audio:
-                if texte_audio is None:
-                    texte_audio = reponse
-                with st.spinner("Génération de l'audio..."):
-                    audio_reponse = generer_audio(texte_audio, francais=audio_est_francais)                    
-            if doc_trouve:
-                        reponse = doc_trouve["content"]
-                        if francais:
-                            reponse = traduire_en_francais(reponse)
-                        badge = f"📚 Réponse vérifiée : *{doc_trouve['title']}* ({doc_trouve['subject']}) — RAG"
-            else:
-                        # 3. Aucun document pertinent -> réponse honnête, plus de génération libre GPT-2
-                                            if doc_trouve:
+                    if doc_trouve:
                         reponse = doc_trouve["content"]
                         if francais:
                             reponse = traduire_en_francais(reponse)
                         badge = f"📚 Réponse vérifiée : *{doc_trouve['title']}* ({doc_trouve['subject']}) — RAG"
                     else:
-                        # 3. Aucun document pertinent -> réponse honnête, plus de génération libre GPT-2
                         if francais:
                             reponse = ("Je n'ai pas d'information vérifiée sur ce sujet dans ma base de "
                                        "connaissances. Essaie de reformuler ta question, ou pose une "
@@ -737,7 +713,6 @@ if modele_charge:
                     st.caption("⚠️ Synthèse vocale indisponible pour cette réponse.")
 
         st.session_state.messages.append({"role": "assistant", "content": reponse, "audio": audio_reponse})
-
     # Export Word et réinitialisation
     col_export, col_reset = st.columns(2)
 
