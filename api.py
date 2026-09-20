@@ -7,11 +7,12 @@ from pydantic import BaseModel
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from sklearn.metrics.pairwise import cosine_similarity
 from deep_translator import GoogleTranslator, MyMemoryTranslator
+from rapidfuzz import process, fuzz
 
 from knowledge_base import KNOWLEDGE_BASE
 
 # ============================================================
-# (Reprise de la logique de app.py, sans Streamlit, sans PyTorch local)
+# (Reprise de la logique de app.py, sans Streamlit, sans PyTorch local)        
 # ============================================================
 MOTS_CLES_ERREUR_TRADUCTION = [
     "MYMEMORY WARNING", "QUERY LENGTH LIMIT", "INVALID SOURCE",
@@ -219,6 +220,27 @@ _stop_words_etendus = list(ENGLISH_STOP_WORDS) + [
 vectorizer = TfidfVectorizer(stop_words=_stop_words_etendus)
 matrix = vectorizer.fit_transform(_textes)
 print("Index RAG prêt.")
+def construire_vocabulaire():
+    mots = set()
+    for doc in KNOWLEDGE_BASE:
+        texte = f"{doc['title']} {doc['content']}".lower()
+        mots.update(re.findall(r"[a-zA-Zàâäéèêëïîôöùûüç]+", texte))
+    return list(mots)
+
+
+def corriger_question(question, vocabulaire_connu, seuil=80):
+    mots = question.split()
+    mots_corriges = []
+    for mot in mots:
+        if len(mot) < 4:
+            mots_corriges.append(mot)
+            continue
+        match = process.extractOne(mot.lower(), vocabulaire_connu, scorer=fuzz.ratio, score_cutoff=seuil)
+        mots_corriges.append(match[0] if match else mot)
+    return " ".join(mots_corriges)
+
+
+VOCABULAIRE_CONNU = construire_vocabulaire()  # calculé une seule fois au démarrage, pas à chaque requête
 
 
 # ============================================================
@@ -268,16 +290,20 @@ def chat(payload: QuestionRequest):
             reponse = traduire_en_francais(reponse)
         badge = "Réponse vérifiée (base de capitales)"
     else:
-        doc_trad, score_trad = chercher_dans_base(question_recherche, vectorizer, matrix)
+        else:
+        question_recherche_corrigee = corriger_question(question_recherche, VOCABULAIRE_CONNU)
+        doc_trad, score_trad = chercher_dans_base(question_recherche_corrigee, vectorizer, matrix)
         if doc_trad and doc_trad["subject"] in ("French", "English") and question_recherche == question:
             # La "traduction" a échoué et renvoyé le texte original (probablement encore
             # en français) : on ignore un faux-positif sur les fiches de grammaire.
             doc_trad, score_trad = None, 0
+                SEUIL_DOC_BRUT = 0.30  # plus strict que SEUIL_SIMILARITE, car recherche non fiable
+
         if francais:
             doc_brut, score_brut = chercher_dans_base(question, vectorizer, matrix)
             if doc_brut and doc_brut["subject"] in ("French", "English"):
                 doc_brut, score_brut = None, 0
-            if doc_brut and score_brut > score_trad:
+            if doc_brut and score_brut >= SEUIL_DOC_BRUT and score_brut > score_trad + 0.1:
                 doc_trouve, score = doc_brut, score_brut
             else:
                 doc_trouve, score = doc_trad, score_trad
@@ -290,10 +316,17 @@ def chat(payload: QuestionRequest):
                 reponse = traduire_en_francais(reponse)
             badge = f"Réponse vérifiée : {doc_trouve['title']} ({doc_trouve['subject']}) — RAG"
         else:
-            reponse = generer_reponse(question_recherche)
             if francais:
-                reponse = traduire_en_francais(reponse)
-            badge = "Réponse générée par GPT-2 (non vérifiée)"
+                reponse = ("Je n'ai pas d'information vérifiée sur ce sujet dans ma base de "
+                           "connaissances. Essaie de reformuler ta question, ou pose une "
+                           "question sur un des sujets couverts (maths, physique, géographie, "
+                           "civilisation, électronique, informatique, cybersécurité, chimie).")
+            else:
+                reponse = ("I don't have verified information on this topic in my knowledge "
+                           "base. Try rephrasing your question, or ask about a covered subject "
+                           "(math, physics, geography, civics, electronics, computer science, "
+                           "cybersecurity, chemistry).")
+            badge = "Sujet non couvert par la base de connaissances"
 
     return ReponseAPI(reponse=reponse, badge=badge)
 
