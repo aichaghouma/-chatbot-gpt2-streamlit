@@ -9,6 +9,7 @@ from docx import Document as DocxDocument
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from sklearn.metrics.pairwise import cosine_similarity
+from rapidfuzz import process, fuzz
 
 
 
@@ -148,10 +149,7 @@ def est_francais(question):
 
 def traduire_en_francais(texte_anglais):
     try:
-        resultat = GoogleTranslator(source="en", target="fr").translate(texte_anglais)
-        if not traduction_est_valide(texte_anglais, resultat):
-            raise ValueError("Traduction invalide")
-        return resultat
+        return traduire_avec_secours(texte_anglais, "en", "fr")
     except Exception:
         return texte_anglais + "\n\n*(Traduction indisponible, réponse affichée en anglais)*"
 
@@ -348,6 +346,27 @@ def construire_index_rag():
     vectorizer = TfidfVectorizer(stop_words=stop_words_etendus)
     matrix = vectorizer.fit_transform(textes)
     return vectorizer, matrix
+    @st.cache_resource
+def construire_vocabulaire():
+    """Extrait tous les mots uniques du titre+contenu de la base, pour la correction orthographique."""
+    mots = set()
+    for doc in KNOWLEDGE_BASE:
+        texte = f"{doc['title']} {doc['content']}".lower()
+        mots.update(re.findall(r"[a-zA-Zàâäéèêëïîôöùûüç]+", texte))
+    return list(mots)
+
+
+def corriger_question(question, vocabulaire_connu, seuil=80):
+    """Corrige les mots mal orthographiés proches d'un mot connu de la base."""
+    mots = question.split()
+    mots_corriges = []
+    for mot in mots:
+        if len(mot) < 4:  # ne pas toucher aux mots trop courts (risque de faux positifs)
+            mots_corriges.append(mot)
+            continue
+        match = process.extractOne(mot.lower(), vocabulaire_connu, scorer=fuzz.ratio, score_cutoff=seuil)
+        mots_corriges.append(match[0] if match else mot)
+    return " ".join(mots_corriges)
 
 
 # Acronymes et synonymes courants -> forme complète, pour mieux matcher les reformulations
@@ -647,10 +666,13 @@ if modele_charge:
                         reponse = traduire_en_francais(reponse)
                     badge = "✅ Réponse vérifiée (base de capitales)"
                 else:
+                                   else:
                     # 2. Chercher dans la base de connaissances multi-matières
+                    vocabulaire = construire_vocabulaire()
+                    question_recherche_corrigee = corriger_question(question_recherche, vocabulaire)
                     # On essaie à la fois la version traduite ET la version originale
                     # (la traduction peut corrompre des acronymes techniques comme "MOSFET", "TCP", etc.)
-                    doc_trad, score_trad = chercher_dans_base(question_recherche, vectorizer, matrix)
+                    doc_trad, score_trad = chercher_dans_base(question_recherche_corrigee, vectorizer, matrix)
                     if francais:
                         doc_brut, score_brut = chercher_dans_base(question, vectorizer, matrix)
                         # On ignore un match "brut" venant des fiches de grammaire (French/English) :
@@ -664,17 +686,7 @@ if modele_charge:
                     else:
                         doc_trouve, score = doc_trad, score_trad
 
-                    if doc_trouve:
-                        reponse = doc_trouve["content"]
-                        if francais:
-                            reponse = traduire_en_francais(reponse)
-                        badge = f"📚 Réponse vérifiée : *{doc_trouve['title']}* ({doc_trouve['subject']}) — RAG"
-                    else:
-                        # 3. Aucun document pertinent -> génération libre (toujours en anglais chez GPT-2)
-                        reponse = generer_reponse(model, tokenizer, question_recherche, device)
-                        if francais:
-                            reponse = traduire_en_francais(reponse)
-                        badge = "🤖 Réponse générée par GPT-2 (non vérifiée — aucun document pertinent trouvé)"
+                    
 
                 st.caption(badge)
             st.markdown(reponse)
@@ -684,7 +696,24 @@ if modele_charge:
                 if texte_audio is None:
                     texte_audio = reponse
                 with st.spinner("Génération de l'audio..."):
-                    audio_reponse = generer_audio(texte_audio, francais=audio_est_francais)
+                    audio_reponse = generer_audio(texte_audio, francais=audio_est_francais)                    if doc_trouve:
+                        reponse = doc_trouve["content"]
+                        if francais:
+                            reponse = traduire_en_francais(reponse)
+                        badge = f"📚 Réponse vérifiée : *{doc_trouve['title']}* ({doc_trouve['subject']}) — RAG"
+                    else:
+                        # 3. Aucun document pertinent -> réponse honnête, plus de génération libre GPT-2
+                        if francais:
+                            reponse = ("Je n'ai pas d'information vérifiée sur ce sujet dans ma base de "
+                                       "connaissances. Essaie de reformuler ta question, ou pose une "
+                                       "question sur un des sujets couverts (maths, physique, géographie, "
+                                       "civilisation, électronique, informatique, cybersécurité, chimie).")
+                        else:
+                            reponse = ("I don't have verified information on this topic in my knowledge "
+                                       "base. Try rephrasing your question, or ask about a covered subject "
+                                       "(math, physics, geography, civics, electronics, computer science, "
+                                       "cybersecurity, chemistry).")
+                        badge = "❓ Sujet non couvert par la base de connaissances"
                 if audio_reponse:
                     st.audio(audio_reponse, format="audio/mp3")
                 else:
