@@ -696,6 +696,7 @@ if modele_charge:
                     texte_audio = reponse
                 with st.spinner("Génération de l'audio..."):
                     audio_reponse = generer_audio(texte_audio, francais=audio_est_francais)                    if doc_trouve:
+                if doc_trouve:
                         reponse = doc_trouve["content"]
                         if francais:
                             reponse = traduire_en_francais(reponse)
