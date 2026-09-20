@@ -703,6 +703,13 @@ if modele_charge:
                         badge = f"📚 Réponse vérifiée : *{doc_trouve['title']}* ({doc_trouve['subject']}) — RAG"
             else:
                         # 3. Aucun document pertinent -> réponse honnête, plus de génération libre GPT-2
+                                            if doc_trouve:
+                        reponse = doc_trouve["content"]
+                        if francais:
+                            reponse = traduire_en_francais(reponse)
+                        badge = f"📚 Réponse vérifiée : *{doc_trouve['title']}* ({doc_trouve['subject']}) — RAG"
+                    else:
+                        # 3. Aucun document pertinent -> réponse honnête, plus de génération libre GPT-2
                         if francais:
                             reponse = ("Je n'ai pas d'information vérifiée sur ce sujet dans ma base de "
                                        "connaissances. Essaie de reformuler ta question, ou pose une "
@@ -714,12 +721,25 @@ if modele_charge:
                                        "(math, physics, geography, civics, electronics, computer science, "
                                        "cybersecurity, chemistry).")
                         badge = "❓ Sujet non couvert par la base de connaissances"
+
+                st.caption(badge)
+            st.markdown(reponse)
+
+            audio_reponse = None
+            if st.session_state.lire_audio:
+                if texte_audio is None:
+                    texte_audio = reponse
+                with st.spinner("Génération de l'audio..."):
+                    audio_reponse = generer_audio(texte_audio, francais=audio_est_francais)
                 if audio_reponse:
                     st.audio(audio_reponse, format="audio/mp3")
                 else:
                     st.caption("⚠️ Synthèse vocale indisponible pour cette réponse.")
 
         st.session_state.messages.append({"role": "assistant", "content": reponse, "audio": audio_reponse})
+
+    # Export Word et réinitialisation
+    col_export, col_reset = st.columns(2)
 
     # Export Word et réinitialisation
     col_export, col_reset = st.columns(2)
