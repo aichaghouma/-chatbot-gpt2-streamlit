@@ -297,8 +297,8 @@ def chat(payload: QuestionRequest):
             # La "traduction" a échoué et renvoyé le texte original (probablement encore
             # en français) : on ignore un faux-positif sur les fiches de grammaire.
             doc_trad, score_trad = None, 0
-                SEUIL_DOC_BRUT = 0.30  # plus strict que SEUIL_SIMILARITE, car recherche non fiable
-
+            
+         SEUIL_DOC_BRUT = 0.30  # plus strict que SEUIL_SIMILARITE, car recherche non fiable
         if francais:
             doc_brut, score_brut = chercher_dans_base(question, vectorizer, matrix)
             if doc_brut and doc_brut["subject"] in ("French", "English"):
