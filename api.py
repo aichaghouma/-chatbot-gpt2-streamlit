@@ -12,12 +12,13 @@ from rapidfuzz import process, fuzz
 from knowledge_base import KNOWLEDGE_BASE
 
 # ============================================================
-# (Reprise de la logique de app.py, sans Streamlit, sans PyTorch local)        
+# (Reprise de la logique de app.py, sans Streamlit, sans PyTorch local)
 # ============================================================
 MOTS_CLES_ERREUR_TRADUCTION = [
     "MYMEMORY WARNING", "QUERY LENGTH LIMIT", "INVALID SOURCE",
     "INVALID TARGET", "TRANSLATION UNAVAILABLE", "AVAILABLE FREE TRANSLATIONS",
 ]
+
 
 def traduction_est_valide(texte_original, texte_traduit):
     if not texte_traduit or not texte_traduit.strip():
@@ -27,6 +28,7 @@ def traduction_est_valide(texte_original, texte_traduit):
     if texte_traduit.strip() == texte_original.strip():
         return False
     return True
+
 
 MOTS_FRANCAIS = {
     "quelle", "quel", "quels", "quelles", "qu'est-ce", "qu est ce",
@@ -47,13 +49,20 @@ def est_francais(question):
 
 
 _CODES_MYMEMORY = {"fr": "fr-FR", "en": "en-GB"}
+_cache_traductions = {}
 
 
 def traduire_avec_secours(texte, source, cible):
+    """Traduit avec Google en priorité, MyMemory en secours, et met en cache
+    les résultats pour éviter de repayer le rate limit sur les mêmes textes."""
+    cle = (texte, source, cible)
+    if cle in _cache_traductions:
+        return _cache_traductions[cle]
     try:
         resultat = GoogleTranslator(source=source, target=cible).translate(texte)
         if not traduction_est_valide(texte, resultat):
             raise ValueError("Traduction Google invalide")
+        _cache_traductions[cle] = resultat
         return resultat
     except Exception as e:
         print(f"[Traduction] GoogleTranslator échec : {e}")
@@ -63,6 +72,7 @@ def traduire_avec_secours(texte, source, cible):
             resultat = MyMemoryTranslator(source=source_mm, target=cible_mm).translate(texte)
             if not traduction_est_valide(texte, resultat):
                 raise ValueError("Traduction MyMemory invalide")
+            _cache_traductions[cle] = resultat
             return resultat
         except Exception as e2:
             print(f"[Traduction] MyMemoryTranslator échec aussi : {e2}")
@@ -137,6 +147,7 @@ def chercher_capitale(question):
 
 
 SEUIL_SIMILARITE = 0.15
+SEUIL_DOC_BRUT = 0.30  # seuil plus strict pour la recherche en français brut (non traduit)
 
 EXPANSIONS_SYNONYMES = {
     "ml": "machine learning", "ai": "artificial intelligence", "dl": "deep learning",
@@ -167,15 +178,40 @@ def chercher_dans_base(question, vectorizer, matrix):
 
 
 # ============================================================
-# GENERATION VIA L'API D'INFERENCE HUGGING FACE (à distance)
-# Remplace le chargement local de PyTorch/Transformers, trop lourd
-# en mémoire pour un hébergement gratuit (Render free = 512 Mo).
+# CORRECTION ORTHOGRAPHIQUE (tolère les fautes de frappe)
 # ============================================================
 
+def construire_vocabulaire():
+    mots = set()
+    for doc in KNOWLEDGE_BASE:
+        texte = f"{doc['title']} {doc['content']}".lower()
+        mots.update(re.findall(r"[a-zA-Zàâäéèêëïîôöùûüç]+", texte))
+    return list(mots)
+
+
+def corriger_question(question, vocabulaire_connu, seuil=80):
+    mots = question.split()
+    mots_corriges = []
+    for mot in mots:
+        if len(mot) < 4:
+            mots_corriges.append(mot)
+            continue
+        match = process.extractOne(mot.lower(), vocabulaire_connu, scorer=fuzz.ratio, score_cutoff=seuil)
+        mots_corriges.append(match[0] if match else mot)
+    return " ".join(mots_corriges)
+
+
+# ============================================================
+# GENERATION VIA L'API D'INFERENCE HUGGING FACE (à distance)
 # Remplace le chargement local de PyTorch/Transformers, trop lourd
 # en mémoire pour un hébergement gratuit (Render free = 512 Mo).
 # On utilise la bibliothèque officielle huggingface_hub, qui gère
 # elle-même l'adresse actuelle du service (plus fiable qu'une URL fixe).
+#
+# NOTE : cette fonction n'est plus appelée dans la logique /chat
+# (on préfère une réponse honnête "sujet non couvert" plutôt que
+# laisser GPT-2 générer une réponse non fiable). Gardée disponible
+# si besoin de la réactiver plus tard.
 # ============================================================
 
 from huggingface_hub import InferenceClient
@@ -206,7 +242,7 @@ def generer_reponse(question, max_length=80, temperature=0.4):
 
 
 # ============================================================
-# CONSTRUCTION DE L'INDEX RAG (léger, tourne bien en local)
+# CONSTRUCTION DE L'INDEX RAG ET DU VOCABULAIRE (une seule fois au démarrage)
 # ============================================================
 
 print("Construction de l'index RAG...")
@@ -220,27 +256,10 @@ _stop_words_etendus = list(ENGLISH_STOP_WORDS) + [
 vectorizer = TfidfVectorizer(stop_words=_stop_words_etendus)
 matrix = vectorizer.fit_transform(_textes)
 print("Index RAG prêt.")
-def construire_vocabulaire():
-    mots = set()
-    for doc in KNOWLEDGE_BASE:
-        texte = f"{doc['title']} {doc['content']}".lower()
-        mots.update(re.findall(r"[a-zA-Zàâäéèêëïîôöùûüç]+", texte))
-    return list(mots)
 
-
-def corriger_question(question, vocabulaire_connu, seuil=80):
-    mots = question.split()
-    mots_corriges = []
-    for mot in mots:
-        if len(mot) < 4:
-            mots_corriges.append(mot)
-            continue
-        match = process.extractOne(mot.lower(), vocabulaire_connu, scorer=fuzz.ratio, score_cutoff=seuil)
-        mots_corriges.append(match[0] if match else mot)
-    return " ".join(mots_corriges)
-
-
-VOCABULAIRE_CONNU = construire_vocabulaire()  # calculé une seule fois au démarrage, pas à chaque requête
+print("Construction du vocabulaire pour la correction orthographique...")
+VOCABULAIRE_CONNU = construire_vocabulaire()
+print(f"Vocabulaire prêt ({len(VOCABULAIRE_CONNU)} mots).")
 
 
 # ============================================================
@@ -284,21 +303,33 @@ def chat(payload: QuestionRequest):
     if reponse_calcul:
         reponse = reponse_calcul
         badge = "Calcul exact (Python)"
-        else:
+
+    elif chercher_capitale(question_recherche):
+        reponse = chercher_capitale(question_recherche)
+        if francais:
+            reponse = traduire_en_francais(reponse)
+        badge = "Réponse vérifiée (base de capitales)"
+
+    else:
+        # Si la traduction FR->EN a échoué, question_recherche est restée en français :
+        # on le sait car elle est encore identique à la question d'origine.
         traduction_a_echoue = francais and (question_recherche == question)
 
         question_recherche_corrigee = corriger_question(question_recherche, VOCABULAIRE_CONNU)
         doc_trad, score_trad = chercher_dans_base(question_recherche_corrigee, vectorizer, matrix)
 
-        # Si la traduction a échoué, la recherche "traduite" est en réalité du français brut :
-        # on lui applique le même seuil strict que doc_brut, pour éviter les faux positifs.
+        # Si la "traduction" est en réalité du français brut, on lui applique
+        # le même seuil strict que doc_brut pour éviter les faux positifs.
         if traduction_a_echoue and score_trad < SEUIL_DOC_BRUT:
             doc_trad, score_trad = None, 0
 
         if francais:
             doc_brut, score_brut = chercher_dans_base(question, vectorizer, matrix)
+            # On ignore un match "brut" venant des fiches de grammaire (French/English) :
+            # elles captent à tort des mots français/anglais génériques sans rapport avec le sujet
             if doc_brut and doc_brut["subject"] in ("French", "English"):
                 doc_brut, score_brut = None, 0
+            # On ne préfère le match "brut" que s'il est vraiment fort ET nettement meilleur
             if doc_brut and score_brut >= SEUIL_DOC_BRUT and score_brut > score_trad + 0.1:
                 doc_trouve, score = doc_brut, score_brut
             else:
@@ -312,6 +343,7 @@ def chat(payload: QuestionRequest):
                 reponse = traduire_en_francais(reponse)
             badge = f"Réponse vérifiée : {doc_trouve['title']} ({doc_trouve['subject']}) — RAG"
         else:
+            # Aucun document pertinent -> réponse honnête, pas de génération libre GPT-2
             if francais:
                 reponse = ("Je n'ai pas d'information vérifiée sur ce sujet dans ma base de "
                            "connaissances. Essaie de reformuler ta question, ou pose une "
@@ -325,31 +357,6 @@ def chat(payload: QuestionRequest):
             badge = "Sujet non couvert par la base de connaissances"
 
     return ReponseAPI(reponse=reponse, badge=badge)
-_cache_traductions = {}
-
-def traduire_avec_secours(texte, source, cible):
-    cle = (texte, source, cible)
-    if cle in _cache_traductions:
-        return _cache_traductions[cle]
-    try:
-        resultat = GoogleTranslator(source=source, target=cible).translate(texte)
-        if not traduction_est_valide(texte, resultat):
-            raise ValueError("Traduction Google invalide")
-        _cache_traductions[cle] = resultat
-        return resultat
-    except Exception as e:
-        print(f"[Traduction] GoogleTranslator échec : {e}")
-        try:
-            source_mm = _CODES_MYMEMORY.get(source, source)
-            cible_mm = _CODES_MYMEMORY.get(cible, cible)
-            resultat = MyMemoryTranslator(source=source_mm, target=cible_mm).translate(texte)
-            if not traduction_est_valide(texte, resultat):
-                raise ValueError("Traduction MyMemory invalide")
-            _cache_traductions[cle] = resultat
-            return resultat
-        except Exception as e2:
-            print(f"[Traduction] MyMemoryTranslator échec aussi : {e2}")
-            raise
 
 
 # Sert les fichiers de l'app Flutter (dossier "static") sur le même port.
