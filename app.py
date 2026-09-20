@@ -346,7 +346,7 @@ def construire_index_rag():
     vectorizer = TfidfVectorizer(stop_words=stop_words_etendus)
     matrix = vectorizer.fit_transform(textes)
     return vectorizer, matrix
-    @st.cache_resource
+@st.cache_resource
 def construire_vocabulaire():
     """Extrait tous les mots uniques du titre+contenu de la base, pour la correction orthographique."""
     mots = set()
