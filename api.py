@@ -284,21 +284,17 @@ def chat(payload: QuestionRequest):
     if reponse_calcul:
         reponse = reponse_calcul
         badge = "Calcul exact (Python)"
-    elif chercher_capitale(question_recherche):
-        reponse = chercher_capitale(question_recherche)
-        if francais:
-            reponse = traduire_en_francais(reponse)
-        badge = "Réponse vérifiée (base de capitales)"
-    else:
         else:
+        traduction_a_echoue = francais and (question_recherche == question)
+
         question_recherche_corrigee = corriger_question(question_recherche, VOCABULAIRE_CONNU)
         doc_trad, score_trad = chercher_dans_base(question_recherche_corrigee, vectorizer, matrix)
-        if doc_trad and doc_trad["subject"] in ("French", "English") and question_recherche == question:
-            # La "traduction" a échoué et renvoyé le texte original (probablement encore
-            # en français) : on ignore un faux-positif sur les fiches de grammaire.
+
+        # Si la traduction a échoué, la recherche "traduite" est en réalité du français brut :
+        # on lui applique le même seuil strict que doc_brut, pour éviter les faux positifs.
+        if traduction_a_echoue and score_trad < SEUIL_DOC_BRUT:
             doc_trad, score_trad = None, 0
-            
-         SEUIL_DOC_BRUT = 0.30  # plus strict que SEUIL_SIMILARITE, car recherche non fiable
+
         if francais:
             doc_brut, score_brut = chercher_dans_base(question, vectorizer, matrix)
             if doc_brut and doc_brut["subject"] in ("French", "English"):
@@ -329,6 +325,31 @@ def chat(payload: QuestionRequest):
             badge = "Sujet non couvert par la base de connaissances"
 
     return ReponseAPI(reponse=reponse, badge=badge)
+_cache_traductions = {}
+
+def traduire_avec_secours(texte, source, cible):
+    cle = (texte, source, cible)
+    if cle in _cache_traductions:
+        return _cache_traductions[cle]
+    try:
+        resultat = GoogleTranslator(source=source, target=cible).translate(texte)
+        if not traduction_est_valide(texte, resultat):
+            raise ValueError("Traduction Google invalide")
+        _cache_traductions[cle] = resultat
+        return resultat
+    except Exception as e:
+        print(f"[Traduction] GoogleTranslator échec : {e}")
+        try:
+            source_mm = _CODES_MYMEMORY.get(source, source)
+            cible_mm = _CODES_MYMEMORY.get(cible, cible)
+            resultat = MyMemoryTranslator(source=source_mm, target=cible_mm).translate(texte)
+            if not traduction_est_valide(texte, resultat):
+                raise ValueError("Traduction MyMemory invalide")
+            _cache_traductions[cle] = resultat
+            return resultat
+        except Exception as e2:
+            print(f"[Traduction] MyMemoryTranslator échec aussi : {e2}")
+            raise
 
 
 # Sert les fichiers de l'app Flutter (dossier "static") sur le même port.
