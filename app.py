@@ -669,16 +669,17 @@ if modele_charge:
                     vocabulaire = construire_vocabulaire()
                     question_recherche_corrigee = corriger_question(question_recherche, vocabulaire)
                     doc_trad, score_trad = chercher_dans_base(question_recherche_corrigee, vectorizer, matrix)
+                    SEUIL_DOC_BRUT = 0.30  # plus strict que SEUIL_SIMILARITE, car recherche non fiable
+
                     if francais:
                         doc_brut, score_brut = chercher_dans_base(question, vectorizer, matrix)
                         if doc_brut and doc_brut["subject"] in ("French", "English"):
                             doc_brut, score_brut = None, 0
-                        if doc_brut and score_brut > score_trad:
+                        # On ne préfère le match "brut" que s'il est vraiment fort ET nettement meilleur
+                        if doc_brut and score_brut >= SEUIL_DOC_BRUT and score_brut > score_trad + 0.1:
                             doc_trouve, score = doc_brut, score_brut
                         else:
                             doc_trouve, score = doc_trad, score_trad
-                    else:
-                        doc_trouve, score = doc_trad, score_trad
 
                     if doc_trouve:
                         reponse = doc_trouve["content"]
