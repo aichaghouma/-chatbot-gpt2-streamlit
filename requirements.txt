@@ -7,3 +7,4 @@ SpeechRecognition
 gTTS
 huggingface_hub
 python-docx
+rapidfuzz
