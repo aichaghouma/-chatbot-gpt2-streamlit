@@ -701,7 +701,7 @@ if modele_charge:
                         if francais:
                             reponse = traduire_en_francais(reponse)
                         badge = f"📚 Réponse vérifiée : *{doc_trouve['title']}* ({doc_trouve['subject']}) — RAG"
-                        else:
+            else:
                         # 3. Aucun document pertinent -> réponse honnête, plus de génération libre GPT-2
                         if francais:
                             reponse = ("Je n'ai pas d'information vérifiée sur ce sujet dans ma base de "
