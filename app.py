@@ -666,7 +666,6 @@ if modele_charge:
                         reponse = traduire_en_francais(reponse)
                     badge = "✅ Réponse vérifiée (base de capitales)"
                 else:
-                                   else:
                     # 2. Chercher dans la base de connaissances multi-matières
                     vocabulaire = construire_vocabulaire()
                     question_recherche_corrigee = corriger_question(question_recherche, vocabulaire)
