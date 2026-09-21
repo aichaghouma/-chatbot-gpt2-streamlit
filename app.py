@@ -11,37 +11,17 @@ from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from sklearn.metrics.pairwise import cosine_similarity
 from rapidfuzz import process, fuzz
 
-
-
 from knowledge_base import KNOWLEDGE_BASE
 from deep_translator import GoogleTranslator, MyMemoryTranslator
 
-_CODES_MYMEMORY = {"fr": "fr-FR", "en": "en-GB"}
-
-def traduire_avec_secours(texte, source, cible):
-    try:
-        resultat = GoogleTranslator(source=source, target=cible).translate(texte)
-        if not traduction_est_valide(texte, resultat):
-            raise ValueError("Traduction Google invalide")
-        return resultat
-    except Exception:
-        try:
-            source_mm = _CODES_MYMEMORY.get(source, source)
-            cible_mm = _CODES_MYMEMORY.get(cible, cible)
-            resultat = MyMemoryTranslator(source=source_mm, target=cible_mm).translate(texte)
-            if not traduction_est_valide(texte, resultat):
-                raise ValueError("Traduction MyMemory invalide")
-            return resultat
-        except Exception:
-            raise
-
 # ============================================================
-# ASR (Reconnaissance vocale) ET TTS (Synthèse vocale)
+# TRADUCTION (avec secours + cache)
 # ============================================================
 MOTS_CLES_ERREUR_TRADUCTION = [
     "MYMEMORY WARNING", "QUERY LENGTH LIMIT", "INVALID SOURCE",
     "INVALID TARGET", "TRANSLATION UNAVAILABLE", "AVAILABLE FREE TRANSLATIONS",
 ]
+
 
 def traduction_est_valide(texte_original, texte_traduit):
     if not texte_traduit or not texte_traduit.strip():
@@ -52,21 +32,59 @@ def traduction_est_valide(texte_original, texte_traduit):
         return False
     return True
 
+
+_CODES_MYMEMORY = {"fr": "fr-FR", "en": "en-GB"}
+_cache_traductions = {}
+
+
+def traduire_avec_secours(texte, source, cible):
+    cle = (texte, source, cible)
+    if cle in _cache_traductions:
+        return _cache_traductions[cle]
+    try:
+        resultat = GoogleTranslator(source=source, target=cible).translate(texte)
+        if not traduction_est_valide(texte, resultat):
+            raise ValueError("Traduction Google invalide")
+        _cache_traductions[cle] = resultat
+        return resultat
+    except Exception:
+        try:
+            source_mm = _CODES_MYMEMORY.get(source, source)
+            cible_mm = _CODES_MYMEMORY.get(cible, cible)
+            resultat = MyMemoryTranslator(source=source_mm, target=cible_mm).translate(texte)
+            if not traduction_est_valide(texte, resultat):
+                raise ValueError("Traduction MyMemory invalide")
+            _cache_traductions[cle] = resultat
+            return resultat
+        except Exception:
+            raise
+
+
+def traduire_en_francais(texte_anglais):
+    try:
+        return traduire_avec_secours(texte_anglais, "en", "fr")
+    except Exception:
+        return texte_anglais + "\n\n*(Traduction indisponible, réponse affichée en anglais)*"
+
+
+# ============================================================
+# ASR (Reconnaissance vocale) ET TTS (Synthèse vocale)
+# ============================================================
+
 def transcrire_audio(audio_bytes):
     """Transcrit un fichier audio (bytes WAV) en texte, via Google Web Speech API (gratuit)."""
     recognizer = sr.Recognizer()
     try:
         with sr.AudioFile(io.BytesIO(audio_bytes)) as source:
             audio_data = recognizer.record(source)
-        # essai en français d'abord, puis anglais si échec
         try:
             return recognizer.recognize_google(audio_data, language="fr-FR")
         except sr.UnknownValueError:
             return recognizer.recognize_google(audio_data, language="en-US")
     except sr.UnknownValueError:
-        return None  # audio incompréhensible
+        return None
     except sr.RequestError:
-        return None  # problème réseau/API
+        return None
     except Exception:
         return None
 
@@ -82,6 +100,7 @@ def generer_audio(texte, francais=True):
         return buffer.read()
     except Exception:
         return None
+
 
 # ============================================================
 # GENERATEUR DE QCM / EXAMEN (basé sur la base de connaissances)
@@ -100,7 +119,6 @@ def generer_qcm(matiere, nb_questions=5):
     nb_questions = min(nb_questions, len(pool))
     fiches_questions = random.sample(pool, nb_questions)
 
-    # Pool de "mauvaises réponses" : priorité à la même matière, complété par toute la base si besoin
     autre_pool = [d for d in pool if d not in fiches_questions]
     if len(autre_pool) < 3:
         autre_pool = [d for d in KNOWLEDGE_BASE if d not in fiches_questions]
@@ -123,7 +141,7 @@ def generer_qcm(matiere, nb_questions=5):
         })
     return qcm
 
-# ============================================================
+
 # ============================================================
 # DETECTION DE LANGUE ET TRADUCTION
 # ============================================================
@@ -145,13 +163,6 @@ def est_francais(question):
     if any(mot in q for mot in MOTS_FRANCAIS):
         return True
     return False
-
-
-def traduire_en_francais(texte_anglais):
-    try:
-        return traduire_avec_secours(texte_anglais, "en", "fr")
-    except Exception:
-        return texte_anglais + "\n\n*(Traduction indisponible, réponse affichée en anglais)*"
 
 
 # ============================================================
@@ -178,8 +189,7 @@ def detecter_langue_texte(texte):
 
 
 def detecter_demande_traduction(question):
-    """Détecte une demande de traduction et extrait le texte + la langue cible.
-    Le format avec ':' est le plus fiable, mais fonctionne aussi sans."""
+    """Détecte une demande de traduction et extrait le texte + la langue cible."""
     q = question.lower()
     if not any(m in q for m in MOTS_TRADUCTION):
         return None
@@ -188,7 +198,7 @@ def detecter_demande_traduction(question):
     for code, variantes in MOTS_LANGUE_CIBLE.items():
         if any(v in q for v in variantes):
             cible = code
-            break  # déduite automatiquement (langue opposée du texte) si non précisée
+            break
 
     if ":" in question:
         texte = question.split(":", 1)[1].strip()
@@ -206,19 +216,14 @@ def detecter_demande_traduction(question):
 
 
 def executer_traduction(texte, cible):
-    """Traduit un texte donné vers la langue cible (déduite automatiquement si None).
-    Retourne (texte_affichage, texte_audio_pur, cible_est_francais)."""
+    """Traduit un texte donné vers la langue cible (déduite automatiquement si None)."""
     try:
         source = detecter_langue_texte(texte)
         if cible is None:
-            # langue cible par défaut si non précisée : opposée à la langue détectée du texte
             cible = "en" if source == "fr" else "fr"
         if cible == source:
-            # évite un appel de traduction inutile si source == cible détectée par erreur
             source = "auto"
-        traduction = GoogleTranslator(source=source, target=cible).translate(texte)
-        if not traduction_est_valide(texte, traduction):
-            raise ValueError("Traduction invalide")
+        traduction = traduire_avec_secours(texte, source, cible)
         langue_nom = NOMS_LANGUE.get(cible, cible)
         affichage = f'"{texte}" → **{traduction}** ({langue_nom})'
         return affichage, traduction, (cible == "fr")
@@ -242,30 +247,25 @@ def est_demande_devise(question):
     """Détecte une demande de conversion de devises (impossible à répondre de façon fiable et à jour)."""
     q = question.lower()
     nb_mots_devise = sum(1 for m in MOTS_DEVISES if m in q)
-    return nb_mots_devise >= 2  # au moins 2 mentions de devises (ex: dinar + euro)
+    return nb_mots_devise >= 2
 
 
 # ============================================================
 # CALCULATEUR ARITHMÉTIQUE (priorité absolue avant l'IA)
 # ============================================================
-# Les maths simples ne doivent JAMAIS être laissées à GPT-2, qui n'est
-# pas fiable pour ça. On calcule directement avec Python, précis même
-# pour de très grands nombres.
 
 def calculer_expression(question):
-    """Détecte et calcule une expression arithmétique complète (+, -, *, /, parenthèses),
-    en respectant les priorités mathématiques (ex: 3*2+140 = 146, pas 3*142)."""
+    """Détecte et calcule une expression arithmétique complète (+, -, *, /, parenthèses)."""
     q = question.replace(" ", "")
     match = re.search(r'[\d\.\+\-\*x×/\(\)]{3,}', q)
     if not match:
         return None
 
-    expr = match.group().rstrip("+-*/x×.")  # retire un opérateur resté en trop à la fin
+    expr = match.group().rstrip("+-*/x×.")
     if not expr:
         return None
 
     expr_calc = expr.replace("x", "*").replace("×", "*")
-    # sécurité : uniquement chiffres/opérateurs/parenthèses autorisés avant eval()
     if not re.fullmatch(r'[\d\.\+\-\*/\(\)]+', expr_calc):
         return None
     if expr_calc.count("(") != expr_calc.count(")"):
@@ -288,8 +288,6 @@ def calculer_expression(question):
 # ============================================================
 # MINI BASE DE FAITS VÉRIFIÉS (capitales du monde)
 # ============================================================
-# Approche "RAG léger" : pour les questions de capitales, on répond
-# depuis une source fiable plutôt que de laisser GPT-2 inventer.
 
 CAPITALES = {
     "france": "Paris", "tunisia": "Tunis", "tunisie": "Tunis",
@@ -331,7 +329,9 @@ def chercher_capitale(question):
 # MOTEUR RAG (recherche dans la base de connaissances multi-matières)
 # ============================================================
 
-SEUIL_SIMILARITE = 0.15  # en dessous de ce score, on considère qu'il n'y a pas de bon match
+SEUIL_SIMILARITE = 0.15
+SEUIL_DOC_BRUT = 0.30  # seuil plus strict pour la recherche en français brut (non traduit)
+
 
 @st.cache_resource
 def construire_index_rag():
@@ -346,6 +346,8 @@ def construire_index_rag():
     vectorizer = TfidfVectorizer(stop_words=stop_words_etendus)
     matrix = vectorizer.fit_transform(textes)
     return vectorizer, matrix
+
+
 @st.cache_resource
 def construire_vocabulaire():
     """Extrait tous les mots uniques du titre+contenu de la base, pour la correction orthographique."""
@@ -361,7 +363,7 @@ def corriger_question(question, vocabulaire_connu, seuil=80):
     mots = question.split()
     mots_corriges = []
     for mot in mots:
-        if len(mot) < 4:  # ne pas toucher aux mots trop courts (risque de faux positifs)
+        if len(mot) < 4:
             mots_corriges.append(mot)
             continue
         match = process.extractOne(mot.lower(), vocabulaire_connu, scorer=fuzz.ratio, score_cutoff=seuil)
@@ -369,7 +371,6 @@ def corriger_question(question, vocabulaire_connu, seuil=80):
     return " ".join(mots_corriges)
 
 
-# Acronymes et synonymes courants -> forme complète, pour mieux matcher les reformulations
 EXPANSIONS_SYNONYMES = {
     "ml": "machine learning", "ai": "artificial intelligence", "dl": "deep learning",
     "db": "database", "os": "operating system", "ui": "user interface",
@@ -434,21 +435,21 @@ st.set_page_config(page_title="Chatbot ENET'Com - GPT-2 Fine-tuné", page_icon="
 # CHARGEMENT DU MODÈLE (mis en cache pour la rapidité)
 # ============================================================
 
-MODEL_NAME = "Aicha83/chatbot-gpt2-finetuned"  # ton modèle hébergé sur Hugging Face
+MODEL_NAME = "Aicha83/chatbot-gpt2-finetuned"
+
 
 @st.cache_resource
 def charger_modele():
-    device = torch.device("cpu")  # Streamlit Cloud n'a pas de GPU
-
+    device = torch.device("cpu")
     tokenizer = GPT2Tokenizer.from_pretrained(MODEL_NAME)
     model = GPT2LMHeadModel.from_pretrained(MODEL_NAME).to(device)
     model.eval()
-
     return model, tokenizer, device
 
 
 # ============================================================
-# FONCTION DE GÉNÉRATION DE RÉPONSE (sans contexte, cas par défaut)
+# FONCTION DE GÉNÉRATION DE RÉPONSE (gardée disponible, non utilisée
+# dans la logique de décision principale — voir corrections apportées)
 # ============================================================
 
 def generer_reponse(model, tokenizer, question, device, max_length=80, temperature=0.4):
@@ -493,7 +494,7 @@ with st.expander("ℹ️ À propos de ce chatbot"):
        (maths, physique, géographie, civilisation, électronique, informatique, cybersécurité, chimie)
     2. Si une fiche pertinente est trouvée → la réponse **vérifiée** de cette fiche est affichée directement (RAG extractif)
     3. Les questions de capitales sont répondues directement depuis une base fiable
-    4. Sinon → GPT-2 génère librement (moins fiable, signalé par un avertissement)
+    4. Sinon → réponse honnête indiquant que le sujet n'est pas couvert
 
     **Pourquoi un RAG "extractif" plutôt que "génératif" ?**
     Des tests ont montré que GPT-2 base, n'étant pas entraîné à l'instruction-following,
@@ -505,12 +506,12 @@ with st.expander("ℹ️ À propos de ce chatbot"):
     - Modèle de base : GPT-2 (124M paramètres)
     - Fine-tuning : 8 époques sur ~8500 exemples (Dolly 15k)
     - Recherche : TF-IDF + similarité cosinus sur la base de connaissances
+    - Correction orthographique légère avant recherche (rapidfuzz)
     - Génération : anti-répétition activée (repetition_penalty, no_repeat_ngram_size)
 
     ⚠️ **Limites connues** : la base de connaissances est volontairement limitée (démonstration
-    de projet de stage). Pour les sujets non couverts, le modèle peut encore halluciner —
-    ce comportement illustre concrètement l'intérêt d'un RAG à plus grande échelle pour
-    un chatbot de production fiable.
+    de projet de stage). Pour les sujets non couverts, le chatbot l'indique honnêtement
+    plutôt que de générer une réponse non fiable.
     """)
 
 # ============================================================
@@ -570,6 +571,7 @@ with st.expander("📝 Générer un QCM / Examen"):
 try:
     model, tokenizer, device = charger_modele()
     vectorizer, matrix = construire_index_rag()
+    vocabulaire_connu = construire_vocabulaire()
     modele_charge = True
 except Exception as e:
     modele_charge = False
@@ -577,25 +579,21 @@ except Exception as e:
     st.info(f"Vérifie que le modèle `{MODEL_NAME}` est bien public sur Hugging Face et accessible.")
 
 if modele_charge:
-    # Initialiser l'historique de conversation
     if "messages" not in st.session_state:
         st.session_state.messages = []
     if "lire_audio" not in st.session_state:
         st.session_state.lire_audio = False
 
-    # Afficher l'historique
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
             if message["role"] == "assistant" and "audio" in message and message["audio"]:
                 st.audio(message["audio"], format="audio/mp3")
 
-    # Option : lire les réponses à voix haute (TTS)
     st.session_state.lire_audio = st.checkbox(
         "🔊 Lire les réponses à voix haute", value=st.session_state.lire_audio
     )
 
-    # Zone de saisie vocale (ASR)
     with st.expander("🎤 Poser la question à l'oral"):
         audio_input = st.audio_input("Enregistre ta question")
 
@@ -606,93 +604,92 @@ if modele_charge:
         if question_vocale is None:
             st.warning("Impossible de comprendre l'audio. Réessaie ou pose ta question par écrit.")
 
-    # Zone de saisie utilisateur (texte ou audio transcrit)
     question_texte = st.chat_input("Pose ta question ici (en anglais)...")
     question = question_texte or question_vocale
 
     if question:
-        # Afficher la question de l'utilisateur
         with st.chat_message("user"):
             st.markdown(question)
         st.session_state.messages.append({"role": "user", "content": question})
 
-        # Générer et afficher la réponse
-        
         with st.chat_message("assistant"):
             with st.spinner("Génération de la réponse..."):
                 francais = est_francais(question)
 
-                # Si la question est en français, on la traduit en anglais pour la recherche
-                # (la base de connaissances est en anglais) — on garde la question originale pour l'affichage
                 question_recherche = question
                 if francais:
                     try:
-                        resultat = GoogleTranslator(source="fr", target="en").translate(question)
-                        question_recherche = resultat if traduction_est_valide(question, resultat) else question
+                        question_recherche = traduire_avec_secours(question, "fr", "en")
                     except Exception:
-                        question_recherche = question  # si la traduction échoue, on cherche avec le texte original
+                        question_recherche = question
 
-                # 0. Vérifier d'abord si c'est un calcul arithmétique (priorité absolue)
                 reponse_calcul = calculer_expression(question)
                 demande_trad = detecter_demande_traduction(question)
                 demande_devise = est_demande_devise(question)
-                texte_audio = None  # surchargé uniquement par le cas "traduction"
+                texte_audio = None
                 audio_est_francais = francais
 
                 if demande_devise:
-                    reponse = ("Je ne peux pas faire de conversion de devises fiable, car les taux de change "
-                               "changent en temps réel et je n'ai pas accès à des données à jour. "
-                               "Utilise un convertisseur en ligne (comme Google, XE.com, ou ton application bancaire) "
-                               "pour un taux exact et actuel.")
                     if francais:
-                        pass  # déjà en français
+                        reponse = ("Je ne peux pas faire de conversion de devises fiable, car les taux de change "
+                                   "changent en temps réel et je n'ai pas accès à des données à jour. "
+                                   "Utilise un convertisseur en ligne (comme Google, XE.com, ou ton application bancaire) "
+                                   "pour un taux exact et actuel.")
                     else:
                         reponse = ("I can't provide reliable currency conversion, since exchange rates change "
                                    "in real time and I don't have access to live data. "
                                    "Please use an online converter (like Google, XE.com, or your banking app) "
                                    "for an exact, current rate.")
                     badge = "⚠️ Hors de portée (données en temps réel non disponibles)"
+
                 elif reponse_calcul:
                     reponse = reponse_calcul
                     badge = "🧮 Calcul exact (Python)"
+
                 elif demande_trad:
                     texte, cible = demande_trad
                     reponse, texte_audio, audio_est_francais = executer_traduction(texte, cible)
                     badge = "🌐 Traduction"
+
                 elif chercher_capitale(question_recherche):
                     reponse = chercher_capitale(question_recherche)
                     if francais:
                         reponse = traduire_en_francais(reponse)
                     badge = "✅ Réponse vérifiée (base de capitales)"
+
                 else:
-                    # 2. Chercher dans la base de connaissances multi-matières
-                    vocabulaire = construire_vocabulaire()
-                    question_recherche_corrigee = corriger_question(question_recherche, vocabulaire)
+                    # Si la traduction FR->EN a échoué, question_recherche est restée en français.
+                    traduction_a_echoue = francais and (question_recherche == question)
+
+                    question_recherche_corrigee = corriger_question(question_recherche, vocabulaire_connu)
                     doc_trad, score_trad = chercher_dans_base(question_recherche_corrigee, vectorizer, matrix)
-                    SEUIL_DOC_BRUT = 0.30  # plus strict que SEUIL_SIMILARITE, car recherche non fiable
+
+                    if traduction_a_echoue and score_trad < SEUIL_DOC_BRUT:
+                        doc_trad, score_trad = None, 0
 
                     if francais:
                         doc_brut, score_brut = chercher_dans_base(question, vectorizer, matrix)
                         if doc_brut and doc_brut["subject"] in ("French", "English"):
                             doc_brut, score_brut = None, 0
-                        # On ne préfère le match "brut" que s'il est vraiment fort ET nettement meilleur
                         if doc_brut and score_brut >= SEUIL_DOC_BRUT and score_brut > score_trad + 0.1:
                             doc_trouve, score = doc_brut, score_brut
                         else:
                             doc_trouve, score = doc_trad, score_trad
+                    else:
+                        doc_trouve, score = doc_trad, score_trad
 
-                   if doc_trouve:
+                    if doc_trouve:
                         reponse = doc_trouve["content"]
                         if francais:
-                             reponse = traduire_en_francais(reponse)
+                            reponse = traduire_en_francais(reponse)
                         badge = f"📚 Réponse vérifiée : *{doc_trouve['title']}* ({doc_trouve['subject']}) — RAG"
-                       else:
-                          if francais:
+                    else:
+                        if francais:
                             reponse = ("Je n'ai pas d'information vérifiée sur ce sujet dans ma base de "
                                        "connaissances. Essaie de reformuler ta question, ou pose une "
                                        "question sur un des sujets couverts (maths, physique, géographie, "
                                        "civilisation, électronique, informatique, cybersécurité, chimie).")
-                          else:
+                        else:
                             reponse = ("I don't have verified information on this topic in my knowledge "
                                        "base. Try rephrasing your question, or ask about a covered subject "
                                        "(math, physics, geography, civics, electronics, computer science, "
@@ -714,10 +711,7 @@ if modele_charge:
                     st.caption("⚠️ Synthèse vocale indisponible pour cette réponse.")
 
         st.session_state.messages.append({"role": "assistant", "content": reponse, "audio": audio_reponse})
-    # Export Word et réinitialisation
-    col_export, col_reset = st.columns(2)
 
-    # Export Word et réinitialisation
     col_export, col_reset = st.columns(2)
 
     with col_export:
@@ -744,9 +738,7 @@ if modele_charge:
             )
 
     with col_reset:
-        # Bouton pour réinitialiser la conversation
         if st.session_state.messages:
             if st.button("🗑️ Réinitialiser la conversation"):
                 st.session_state.messages = []
                 st.rerun()
-
