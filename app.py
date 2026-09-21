@@ -681,18 +681,18 @@ if modele_charge:
                         else:
                             doc_trouve, score = doc_trad, score_trad
 
-                    if doc_trouve:
+                   if doc_trouve:
                         reponse = doc_trouve["content"]
                         if francais:
-                            reponse = traduire_en_francais(reponse)
+                             reponse = traduire_en_francais(reponse)
                         badge = f"📚 Réponse vérifiée : *{doc_trouve['title']}* ({doc_trouve['subject']}) — RAG"
-                    else:
-                        if francais:
+                       else:
+                          if francais:
                             reponse = ("Je n'ai pas d'information vérifiée sur ce sujet dans ma base de "
                                        "connaissances. Essaie de reformuler ta question, ou pose une "
                                        "question sur un des sujets couverts (maths, physique, géographie, "
                                        "civilisation, électronique, informatique, cybersécurité, chimie).")
-                        else:
+                          else:
                             reponse = ("I don't have verified information on this topic in my knowledge "
                                        "base. Try rephrasing your question, or ask about a covered subject "
                                        "(math, physics, geography, civics, electronics, computer science, "
